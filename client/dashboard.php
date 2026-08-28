@@ -1,18 +1,14 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
-
 if (!isLoggedIn() || $_SESSION['role'] !== 'client') {
     redirect('/login.php');
 }
-
 $user = getCurrentUser();
 $clientId = $_SESSION['user_id'];
-
 $totalBookings = getCount('bookings', "client_id = $clientId");
 $activeBookings = getCount('bookings', "client_id = $clientId AND status IN ('Confirmed', 'Assigned', 'Active')");
 $completedBookings = getCount('bookings', "client_id = $clientId AND status = 'Completed'");
 $pendingPayments = getCount('bookings', "client_id = $clientId AND status = 'Awaiting Payment'");
-
 $stmt = $pdo->prepare("SELECT b.*, v.name as vehicle_name, v.brand, v.model, v.registration_number, 
                        d.full_name as driver_name FROM bookings b
                        JOIN vehicles v ON b.vehicle_id = v.id
@@ -22,14 +18,10 @@ $stmt = $pdo->prepare("SELECT b.*, v.name as vehicle_name, v.brand, v.model, v.r
                        LIMIT 5");
 $stmt->execute([$clientId]);
 $recentBookings = $stmt->fetchAll();
-
 $unreadNotifications = getUnreadNotifications($clientId);
-
 $pageTitle = 'Dashboard - Smart Drive Car Hire';
 include __DIR__ . '/../includes/header.php';
 ?>
-
-
 <div class="dashboard">
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -37,14 +29,13 @@ include __DIR__ . '/../includes/header.php';
         </div>
         <ul class="sidebar-nav">
             <li><a href="<?php echo BASE_URL; ?>client/dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-            <li><a href="<?php echo BASE_URL; ?>client/bookings.php"><i class="fas fa-calendar-check"></i> My Bookings</a></li>
+            <li><a href="<?php echo BASE_URL; ?>client/bookings.php"><i class="fas fa-calendar-check"></i> My Bookings <?php if ($pendingPayments > 0): ?><span style="background: #16A34A; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;"><?php echo $pendingPayments; ?></span><?php endif; ?></a></li>
             <li><a href="<?php echo BASE_URL; ?>client/profile.php"><i class="fas fa-user"></i> Profile</a></li>
-            <li><a href="<?php echo BASE_URL; ?>client/notifications.php"><i class="fas fa-bell"></i> Notifications <?php if ($unreadNotifications > 0): ?><span style="background: var(--primary); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;"><?php echo $unreadNotifications; ?></span><?php endif; ?></a></li>
+            <li><a href="<?php echo BASE_URL; ?>client/notifications.php"><i class="fas fa-bell"></i> Notifications <?php if ($unreadNotifications > 0): ?><span style="background: #16A34A; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;"><?php echo $unreadNotifications; ?></span><?php endif; ?></a></li>
             <li><a href="<?php echo BASE_URL; ?>logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
         </ul>
     </aside>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
     <main class="main-content">
         <div class="top-bar">
             <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
@@ -177,5 +168,5 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+</body>
+</html>

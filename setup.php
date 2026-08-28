@@ -1,15 +1,11 @@
 <?php
 require_once __DIR__ . '/config/database.php';
-
 $hasSuperAdmin = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'super_admin'")->fetchColumn() > 0;
-
 if ($hasSuperAdmin) {
     redirect('/login.php');
 }
-
 $error = '';
 $success = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName = sanitize($_POST['full_name'] ?? '');
     $email = sanitize($_POST['email'] ?? '');
@@ -39,11 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
 include __DIR__ . '/includes/header.php';
 ?>
-
-
 <div class="setup-container">
     <div class="setup-card">
         <h1>SMART <span style="color: var(--primary);">DRIVE</span></h1>
@@ -83,3 +76,5 @@ include __DIR__ . '/includes/header.php';
         <?php endif; ?>
     </div>
 </div>
+</body>
+</html>

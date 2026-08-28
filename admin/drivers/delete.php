@@ -1,10 +1,8 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
-
 if (!isLoggedIn() || !isAdmin()) {
     redirect('/login.php');
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCsrf($_POST['csrf_token'] ?? '')) {
         redirect('/admin/drivers/index.php');
@@ -33,5 +31,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
 redirect('/admin/drivers/index.php');
+</body>
+</html>

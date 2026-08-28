@@ -11,7 +11,7 @@ $search = isset($_GET['search']) ? sanitize($_GET['search']) : '';
 $categoryFilter = isset($_GET['category']) ? (int)$_GET['category'] : 0;
 $statusFilter = isset($_GET['status']) ? sanitize($_GET['status']) : '';
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$perPage = 10;
+$perPage = 1000;
 $offset = ($page - 1) * $perPage;
 
 $sql = "SELECT v.*, c.name as category_name FROM vehicles v 
@@ -76,6 +76,8 @@ include __DIR__ . '/../../includes/header.php';
             <li><a href="<?php echo BASE_URL; ?>admin/payments/index.php"><i class="fas fa-credit-card"></i> Payments</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/clients/index.php"><i class="fas fa-users"></i> Clients</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/reports/index.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            <li><a href="<?php echo BASE_URL; ?>admin/categories/index.php"><i class="fas fa-tags"></i> Categories</a></li>
+            
             <?php if (isSuperAdmin()): ?>
                 <li><a href="<?php echo BASE_URL; ?>admin/settings/index.php"><i class="fas fa-cog"></i> Settings</a></li>
             <?php endif; ?>
@@ -134,7 +136,7 @@ include __DIR__ . '/../../includes/header.php';
             <?php else: ?>
                 <table class="data-table">
                     <thead>
-                        <tr>
+                        <tr><th>#</th>
                             <th>Vehicle</th>
                             <th>Category</th>
                             <th>Registration</th>
@@ -145,10 +147,11 @@ include __DIR__ . '/../../includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
+                        <?php $counter = 1; ?>
                         <?php foreach ($vehicles as $vehicle): ?>
                             <tr>
-                                <td>
-                                    <strong><?php echo htmlspecialchars($vehicle['brand'] . ' ' . $vehicle['model']); ?></strong>
+                            <td><?php echo $counter++; ?></td>
+                            <td><strong><?php echo htmlspecialchars($vehicle['brand'] . ' ' . $vehicle['model']); ?></strong>
                                     <small><?php echo htmlspecialchars($vehicle['name']); ?></small>
                                 </td>
                                 <td><?php echo htmlspecialchars($vehicle['category_name']); ?></td>
@@ -193,4 +196,3 @@ include __DIR__ . '/../../includes/header.php';
     </main>
 </div>
 
-<?php include __DIR__ . '/../../includes/footer.php'; ?>

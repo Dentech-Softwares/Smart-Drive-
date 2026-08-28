@@ -9,7 +9,7 @@ $user = getCurrentUser();
 
 $search = isset($_GET['search']) ? sanitize($_GET['search']) : '';
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$perPage = 10;
+$perPage = 1000;
 $offset = ($page - 1) * $perPage;
 
 $sql = "SELECT * FROM users WHERE role IN ('admin', 'super_admin')";
@@ -54,6 +54,8 @@ include __DIR__ . '/../../includes/header.php';
             <li><a href="<?php echo BASE_URL; ?>admin/payments/index.php"><i class="fas fa-credit-card"></i> Payments</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/clients/index.php"><i class="fas fa-users"></i> Clients</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/reports/index.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            <li><a href="<?php echo BASE_URL; ?>admin/categories/index.php"><i class="fas fa-tags"></i> Categories</a></li>
+            
             <?php if (isSuperAdmin()): ?>
                 <li><a href="<?php echo BASE_URL; ?>admin/activity-logs/index.php"><i class="fas fa-history"></i> Activity Logs</a></li>
                 <li><a href="<?php echo BASE_URL; ?>admin/admins/index.php" class="active"><i class="fas fa-user-shield"></i> Manage Admins</a></li>
@@ -89,7 +91,7 @@ include __DIR__ . '/../../includes/header.php';
             <?php else: ?>
                 <table class="data-table">
                     <thead>
-                        <tr>
+                        <tr><th>#</th>
                             <th>Name</th>
                             <th>Email</th>
                             <th>Phone</th>
@@ -100,9 +102,11 @@ include __DIR__ . '/../../includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
+                        <?php $counter = 1; ?>
                         <?php foreach ($admins as $admin): ?>
                             <tr>
-                                <td><strong><?php echo htmlspecialchars($admin['full_name']); ?></strong></td>
+                            <td><?php echo $counter++; ?></td>
+                            <td><strong><?php echo htmlspecialchars($admin['full_name']); ?></strong></td>
                                 <td><?php echo htmlspecialchars($admin['email']); ?></td>
                                 <td><?php echo htmlspecialchars($admin['phone']); ?></td>
                                 <td>
@@ -156,7 +160,7 @@ include __DIR__ . '/../../includes/header.php';
 </div>
 <div class="sidebar-overlay"></div>
 
-<script>
+<script>const BASE_URL = 'http://localhost/hayven_carhire/';
 function toggleStatus(userId, currentStatus) {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
     Swal.fire({
@@ -168,7 +172,7 @@ function toggleStatus(userId, currentStatus) {
         confirmButtonText: 'Yes, proceed!'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch('/api/booking-actions.php', {
+            fetch(BASE_URL + 'api/booking-actions.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'toggle_user_status', user_id: userId, status: newStatus })
@@ -187,7 +191,7 @@ function promoteAdmin(userId) {
         confirmButtonText: 'Yes, promote!'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch('/api/booking-actions.php', {
+            fetch(BASE_URL + 'api/booking-actions.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'promote_admin', user_id: userId })
@@ -197,4 +201,3 @@ function promoteAdmin(userId) {
 }
 </script>
 
-<?php include __DIR__ . '/../../includes/footer.php'; ?>

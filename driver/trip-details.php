@@ -1,25 +1,19 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
-
 if (!isLoggedIn() || $_SESSION['role'] !== 'driver') {
     redirect('/login.php');
 }
-
 $user = getCurrentUser();
-
 $stmt = $pdo->prepare("SELECT * FROM drivers WHERE phone = ? OR email = ?");
 $stmt->execute([$user['phone'], $user['email']]);
 $driver = $stmt->fetch();
-
 if (!$driver) {
     redirect('/login.php');
 }
-
 $bookingId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if (!$bookingId) {
     redirect('/driver/trips.php');
 }
-
 $stmt = $pdo->prepare("SELECT b.*, u.full_name as client_name, u.phone as client_phone,
                        v.name as vehicle_name, v.brand, v.model, v.registration_number
                        FROM bookings b
@@ -28,16 +22,12 @@ $stmt = $pdo->prepare("SELECT b.*, u.full_name as client_name, u.phone as client
                        WHERE b.id = ? AND b.driver_id = ?");
 $stmt->execute([$bookingId, $driver['id']]);
 $booking = $stmt->fetch();
-
 if (!$booking) {
     redirect('/driver/trips.php');
 }
-
 $pageTitle = 'Trip Details - Smart Drive Car Hire';
 include __DIR__ . '/../includes/header.php';
 ?>
-
-
 <div class="dashboard">
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -132,8 +122,7 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-
-<script>
+<script>const BASE_URL = 'http://localhost/hayven_carhire/';
 function updateTripStatus(bookingId, status) {
     Swal.fire({
         title: 'Update Trip Status?',
@@ -144,7 +133,7 @@ function updateTripStatus(bookingId, status) {
         confirmButtonText: 'Yes, update!'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch('/api/booking-actions.php', {
+            fetch(BASE_URL + 'api/booking-actions.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'update_status', booking_id: bookingId, status: status })
@@ -161,10 +150,9 @@ function updateTripStatus(bookingId, status) {
         }
     });
 }
-
 function saveNotes(bookingId) {
     const notes = document.getElementById('tripNotes').value;
-    fetch('/api/booking-actions.php', {
+    fetch(BASE_URL + 'api/booking-actions.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'save_notes', booking_id: bookingId, notes: notes })
@@ -177,4 +165,5 @@ function saveNotes(bookingId) {
     });
 }
 </script>
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+</body>
+</html>

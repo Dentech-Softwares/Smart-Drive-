@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/config/database.php';
-
 if (isLoggedIn()) {
     if (isAdmin()) {
         redirect('/admin/dashboard.php');
@@ -10,10 +9,8 @@ if (isLoggedIn()) {
         redirect('/client/dashboard.php');
     }
 }
-
 $error = '';
 $success = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName = sanitize($_POST['full_name'] ?? '');
     $email = sanitize($_POST['email'] ?? '');
@@ -45,12 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
 $pageTitle = 'Register';
 include __DIR__ . '/includes/header.php';
 include __DIR__ . '/includes/navbar.php';
 ?>
-
 <div class="auth-section">
     <div class="auth-container">
         <div class="auth-info">
@@ -107,5 +102,5 @@ include __DIR__ . '/includes/navbar.php';
         </div>
     </div>
 </div>
-
-<?php include __DIR__ . '/includes/footer.php'; ?>
+</body>
+</html>

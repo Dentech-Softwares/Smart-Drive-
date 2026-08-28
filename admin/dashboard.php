@@ -1,12 +1,9 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
-
 if (!isLoggedIn() || !isAdmin()) {
     redirect('/login.php');
 }
-
 $user = getCurrentUser();
-
 $totalVehicles = getCount('vehicles');
 $availableVehicles = getCount('vehicles', "status = 'Available'");
 $activeBookings = getCount('bookings', "status IN ('Confirmed', 'Assigned', 'Active')");
@@ -16,7 +13,6 @@ $totalDrivers = getCount('drivers');
 $pendingPayments = getCount('payments', "status = 'Pending'");
 $revenue = getSum('payments', 'amount', "status = 'Verified'");
 $activeTrips = getCount('bookings', "status = 'Active'");
-
 $stmt = $pdo->query("SELECT b.*, u.full_name as client_name, v.name as vehicle_name, v.brand, v.model 
                      FROM bookings b 
                      JOIN users u ON b.client_id = u.id 
@@ -24,14 +20,10 @@ $stmt = $pdo->query("SELECT b.*, u.full_name as client_name, v.name as vehicle_n
                      ORDER BY b.created_at DESC 
                      LIMIT 5");
 $recentBookings = $stmt->fetchAll();
-
 $unreadNotifications = getUnreadNotifications($user['id']);
-
 $pageTitle = 'Dashboard - Smart Drive Car Hire';
 include __DIR__ . '/../includes/header.php';
 ?>
-
-
 <div class="dashboard">
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -41,11 +33,13 @@ include __DIR__ . '/../includes/header.php';
         <ul class="sidebar-nav">
             <li><a href="<?php echo BASE_URL; ?>admin/dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/vehicles/index.php"><i class="fas fa-car"></i> Vehicles</a></li>
-            <li><a href="<?php echo BASE_URL; ?>admin/bookings/index.php"><i class="fas fa-calendar-check"></i> Bookings</a></li>
+            <li><a href="<?php echo BASE_URL; ?>admin/bookings/index.php"><i class="fas fa-calendar-check"></i> Bookings <?php if ($pendingBookings > 0): ?><span style="background: #16A34A; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;"><?php echo $pendingBookings; ?></span><?php endif; ?></a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/drivers/index.php"><i class="fas fa-user-tie"></i> Drivers</a></li>
-            <li><a href="<?php echo BASE_URL; ?>admin/payments/index.php"><i class="fas fa-credit-card"></i> Payments</a></li>
+            <li><a href="<?php echo BASE_URL; ?>admin/payments/index.php"><i class="fas fa-credit-card"></i> Payments <?php if ($pendingPayments > 0): ?><span style="background: #16A34A; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;"><?php echo $pendingPayments; ?></span><?php endif; ?></a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/clients/index.php"><i class="fas fa-users"></i> Clients</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/reports/index.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            <li><a href="<?php echo BASE_URL; ?>admin/categories/index.php"><i class="fas fa-tags"></i> Categories</a></li>
+            
             <?php if (isSuperAdmin()): ?>
                 <li><a href="<?php echo BASE_URL; ?>admin/settings/index.php"><i class="fas fa-cog"></i> Settings</a></li>
             <?php endif; ?>
@@ -53,7 +47,6 @@ include __DIR__ . '/../includes/header.php';
         </ul>
     </aside>
     <div class="sidebar-overlay"></div>
-
     <main class="main-content">
         <div class="top-bar">
             <button id="sidebarToggle" class="sidebar-toggle"><i class="fas fa-bars"></i></button>
@@ -221,5 +214,5 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+</body>
+</html>

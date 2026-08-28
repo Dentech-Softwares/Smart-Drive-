@@ -1,26 +1,20 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
-
 if (!isLoggedIn() || $_SESSION['role'] !== 'driver') {
     redirect('/login.php');
 }
-
 $user = getCurrentUser();
-
 $stmt = $pdo->prepare("SELECT * FROM drivers WHERE phone = ? OR email = ?");
 $stmt->execute([$user['phone'], $user['email']]);
 $driver = $stmt->fetch();
-
 if (!$driver) {
     redirect('/login.php');
 }
-
 $search = isset($_GET['search']) ? sanitize($_GET['search']) : '';
 $statusFilter = isset($_GET['status']) ? sanitize($_GET['status']) : '';
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$perPage = 10;
+$perPage = 1000;
 $offset = ($page - 1) * $perPage;
-
 $sql = "SELECT b.*, u.full_name as client_name, u.phone as client_phone,
                v.name as vehicle_name, v.brand, v.model, v.registration_number
         FROM bookings b
@@ -30,7 +24,6 @@ $sql = "SELECT b.*, u.full_name as client_name, u.phone as client_phone,
 $params = [$driver['id']];
 $countSql = "SELECT COUNT(*) FROM bookings WHERE driver_id = ?";
 $countParams = [$driver['id']];
-
 if ($search) {
     $sql .= " AND (b.booking_reference LIKE ? OR u.full_name LIKE ? OR v.brand LIKE ?)";
     $countSql .= " AND (booking_reference LIKE ? OR (SELECT full_name FROM users WHERE id = client_id) LIKE ? OR (SELECT brand FROM vehicles WHERE id = vehicle_id) LIKE ?)";
@@ -44,23 +37,17 @@ if ($statusFilter) {
     $params[] = $statusFilter;
     $countParams[] = $statusFilter;
 }
-
 $sql .= " ORDER BY b.created_at DESC LIMIT $perPage OFFSET $offset";
-
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $trips = $stmt->fetchAll();
-
 $countStmt = $pdo->prepare($countSql);
 $countStmt->execute($countParams);
 $total = $countStmt->fetchColumn();
 $totalPages = ceil($total / $perPage);
-
 $pageTitle = 'My Trips - Smart Drive Car Hire';
 include __DIR__ . '/../includes/header.php';
 ?>
-
-
 <div class="dashboard">
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -112,7 +99,7 @@ include __DIR__ . '/../includes/header.php';
             <?php else: ?>
                 <table class="data-table">
                     <thead>
-                        <tr>
+                        <tr><th>#</th>
                             <th>Reference</th>
                             <th>Client</th>
                             <th>Vehicle</th>
@@ -123,9 +110,11 @@ include __DIR__ . '/../includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
+                        <?php $counter = 1; ?>
                         <?php foreach ($trips as $trip): ?>
                             <tr>
-                                <td><strong><?php echo htmlspecialchars($trip['booking_reference']); ?></strong></td>
+                            <td><?php echo $counter++; ?></td>
+                            <td><strong><?php echo htmlspecialchars($trip['booking_reference']); ?></strong></td>
                                 <td><?php echo htmlspecialchars($trip['client_name']); ?></td>
                                 <td><?php echo htmlspecialchars($trip['brand'] . ' ' . $trip['model']); ?></td>
                                 <td><?php echo formatDateTime($trip['pickup_datetime']); ?></td>
@@ -158,4 +147,5 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+</body>
+</html>

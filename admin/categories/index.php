@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
 
-if (!isLoggedIn() || !isSuperAdmin()) {
+if (!isLoggedIn() || !isAdmin()) {
     redirect('/login.php');
 }
 
@@ -12,16 +12,16 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $perPage = 1000;
 $offset = ($page - 1) * $perPage;
 
-$sql = "SELECT * FROM activity_logs WHERE 1=1";
+$sql = "SELECT * FROM vehicle_categories WHERE 1=1";
 $params = [];
-$countSql = "SELECT COUNT(*) FROM activity_logs WHERE 1=1";
+$countSql = "SELECT COUNT(*) FROM vehicle_categories WHERE 1=1";
 $countParams = [];
 
 if ($search) {
-    $sql .= " AND (user_name LIKE ? OR action LIKE ? OR description LIKE ?)";
-    $countSql .= " AND (user_name LIKE ? OR action LIKE ? OR description LIKE ?)";
+    $sql .= " AND (name LIKE ? OR description LIKE ?)";
+    $countSql .= " AND (name LIKE ? OR description LIKE ?)";
     $searchParam = "%$search%";
-    $params[] = $searchParam; $params[] = $searchParam; $params[] = $searchParam;
+    $params[] = $searchParam; $params[] = $searchParam;
     $countParams = $params;
 }
 
@@ -29,14 +29,14 @@ $sql .= " ORDER BY created_at DESC LIMIT $perPage OFFSET $offset";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
-$logs = $stmt->fetchAll();
+$categories = $stmt->fetchAll();
 
 $countStmt = $pdo->prepare($countSql);
 $countStmt->execute($countParams);
 $total = $countStmt->fetchColumn();
 $totalPages = ceil($total / $perPage);
 
-$pageTitle = 'Activity Logs - Smart Drive Car Hire';
+$pageTitle = 'Vehicle Categories - Smart Drive Car Hire';
 include __DIR__ . '/../../includes/header.php';
 ?>
 
@@ -54,11 +54,9 @@ include __DIR__ . '/../../includes/header.php';
             <li><a href="<?php echo BASE_URL; ?>admin/payments/index.php"><i class="fas fa-credit-card"></i> Payments</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/clients/index.php"><i class="fas fa-users"></i> Clients</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/reports/index.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
-            <li><a href="<?php echo BASE_URL; ?>admin/categories/index.php"><i class="fas fa-tags"></i> Categories</a></li>
             
+            <li><a href="<?php echo BASE_URL; ?>admin/categories/index.php" class="active"><i class="fas fa-tags"></i> Categories</a></li>
             <?php if (isSuperAdmin()): ?>
-                <li><a href="<?php echo BASE_URL; ?>admin/activity-logs/index.php" class="active"><i class="fas fa-history"></i> Activity Logs</a></li>
-                <li><a href="<?php echo BASE_URL; ?>admin/admins/index.php"><i class="fas fa-user-shield"></i> Manage Admins</a></li>
                 <li><a href="<?php echo BASE_URL; ?>admin/settings/index.php"><i class="fas fa-cog"></i> Settings</a></li>
             <?php endif; ?>
             <li><a href="<?php echo BASE_URL; ?>logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
@@ -68,47 +66,75 @@ include __DIR__ . '/../../includes/header.php';
     <main class="main-content">
         <div class="top-bar">
             <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
-            <h1>Activity Logs</h1>
+            <h1>Vehicle Categories</h1>
+            <div class="top-bar-actions">
+                <a href="<?php echo BASE_URL; ?>admin/categories/add.php" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Add Category
+                </a>
+            </div>
         </div>
         
         <div class="filter-bar">
             <form method="GET" action="">
                 <div class="form-group">
-                    <label>Search Logs</label>
-                    <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search by user, action, or description...">
+                    <label>Search Categories</label>
+                    <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search by name or description...">
                 </div>
                 <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
             </form>
         </div>
         
         <div class="data-table-container">
-            <?php if (empty($logs)): ?>
+            <?php if (empty($categories)): ?>
                 <div class="empty-state">
-                    <i class="fas fa-history"></i>
-                    <h4>No Activity Logs Found</h4>
-                    <p>No logs match your search criteria.</p>
+                    <i class="fas fa-tags"></i>
+                    <h4>No Categories Found</h4>
+                    <p>No categories match your search criteria.</p>
+                    <a href="<?php echo BASE_URL; ?>admin/categories/add.php" class="btn btn-primary">Add First Category</a>
                 </div>
             <?php else: ?>
                 <table class="data-table">
                     <thead>
                         <tr><th>#</th>
-                            <th>User</th>
-                            <th>Action</th>
+                            <th>Name</th>
                             <th>Description</th>
-                            <th>IP Address</th>
-                            <th>Timestamp</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php $counter = 1; ?>
-                        <?php foreach ($logs as $log): ?>
+                        <?php foreach ($categories as $cat): ?>
                             <tr>
                             <td><?php echo $counter++; ?></td>
-                            <td><strong><?php echo htmlspecialchars($log['user_name'] ?: 'System'); ?></strong></td>
-                                <td><?php echo htmlspecialchars($log['action']); ?></td>
-                                <td><?php echo htmlspecialchars($log['description']); ?></td>
-                                <td><?php echo htmlspecialchars($log['ip_address'] ?: '-'); ?></td>
-                                <td><?php echo formatDateTime($log['created_at']); ?></td>
+                            <td><strong><?php echo htmlspecialchars($cat['name']); ?></strong></td>
+                                <td><?php echo htmlspecialchars($cat['description'] ?: '-'); ?></td>
+                                <td>
+                                    <span class="badge bg-<?php echo $cat['status'] === 'active' ? 'success' : 'danger'; ?>">
+                                        <?php echo ucfirst($cat['status']); ?>
+                                    </span>
+                                </td>
+                                <td><?php echo formatDate($cat['created_at']); ?></td>
+                                <td>
+                                    <a href="<?php echo BASE_URL; ?>admin/categories/edit.php?id=<?php echo $cat['id']; ?>" class="btn btn-sm btn-outline">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <?php
+                                        $vehicleCount = $pdo->prepare("SELECT COUNT(*) FROM vehicles WHERE category_id = ?");
+                                        $vehicleCount->execute([$cat['id']]);
+                                        $count = $vehicleCount->fetchColumn();
+                                    ?>
+                                    <?php if ($count == 0): ?>
+                                        <form method="POST" action="<?php echo BASE_URL; ?>admin/categories/delete.php" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this category?');">
+                                            <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+                                            <input type="hidden" name="category_id" value="<?php echo $cat['id']; ?>">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -135,3 +161,4 @@ include __DIR__ . '/../../includes/header.php';
 </div>
 <div class="sidebar-overlay"></div>
 
+<?php include __DIR__ . '/../../includes/footer.php'; ?>

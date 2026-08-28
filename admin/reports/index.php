@@ -80,7 +80,7 @@ if ($reportType === 'bookings') {
 }
 
 $pageTitle = 'Reports - Smart Drive Car Hire';
-include __DIR__ . '/../includes/header.php';
+include __DIR__ . '/../../includes/header.php';
 ?>
 
 
@@ -98,6 +98,7 @@ include __DIR__ . '/../includes/header.php';
             <li><a href="<?php echo BASE_URL; ?>admin/payments/index.php"><i class="fas fa-credit-card"></i> Payments</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/clients/index.php"><i class="fas fa-users"></i> Clients</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/reports/index.php" class="active"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            
             <?php if (isSuperAdmin()): ?>
                 <li><a href="<?php echo BASE_URL; ?>admin/settings/index.php"><i class="fas fa-cog"></i> Settings</a></li>
             <?php endif; ?>
@@ -184,4 +185,3 @@ include __DIR__ . '/../includes/header.php';
     </main>
 </div>
 
-<?php include __DIR__ . '/../includes/footer.php'; ?>

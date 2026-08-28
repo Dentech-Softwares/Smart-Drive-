@@ -1,27 +1,21 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
-
 if (!isLoggedIn() || !isAdmin()) {
     redirect('/login.php');
 }
-
 $user = getCurrentUser();
 $message = '';
 $error = '';
-
 $driverId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if (!$driverId) {
     redirect('/admin/drivers/index.php');
 }
-
 $stmt = $pdo->prepare("SELECT * FROM drivers WHERE id = ?");
 $stmt->execute([$driverId]);
 $driver = $stmt->fetch();
-
 if (!$driver) {
     redirect('/admin/drivers/index.php');
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_driver'])) {
     $fullName = sanitize($_POST['full_name'] ?? '');
     $email = sanitize($_POST['email'] ?? '');
@@ -62,11 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_driver'])) {
         }
     }
 }
-
 $pageTitle = 'Edit Driver - Smart Drive Car Hire';
 include __DIR__ . '/../../includes/header.php';
 ?>
-
 <div class="dashboard">
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -81,6 +73,8 @@ include __DIR__ . '/../../includes/header.php';
             <li><a href="<?php echo BASE_URL; ?>admin/payments/index.php"><i class="fas fa-credit-card"></i> Payments</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/clients/index.php"><i class="fas fa-users"></i> Clients</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/reports/index.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            <li><a href="<?php echo BASE_URL; ?>admin/categories/index.php"><i class="fas fa-tags"></i> Categories</a></li>
+            
             <?php if (isSuperAdmin()): ?>
                 <li><a href="<?php echo BASE_URL; ?>admin/settings/index.php"><i class="fas fa-cog"></i> Settings</a></li>
             <?php endif; ?>
@@ -161,4 +155,5 @@ include __DIR__ . '/../../includes/header.php';
         </div>
     </main>
 </div>
-<?php include __DIR__ . '/../../includes/footer.php'; ?>
+</body>
+</html>

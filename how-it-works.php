@@ -1,11 +1,9 @@
 <?php
 require_once __DIR__ . '/config/database.php';
-
 $pageTitle = 'How It Works - Smart Drive Car Hire';
 include __DIR__ . '/includes/header.php';
 include __DIR__ . '/includes/navbar.php';
 ?>
-
 <section class="section">
     <div class="container">
         <div class="section-title">
@@ -80,5 +78,5 @@ include __DIR__ . '/includes/navbar.php';
         </div>
     </div>
 </section>
-
-<?php include __DIR__ . '/includes/footer.php'; ?>
+</body>
+</html>

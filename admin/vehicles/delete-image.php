@@ -1,10 +1,8 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
-
 if (!isLoggedIn() || !isAdmin()) {
     redirect('/login.php');
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $imageId = isset($_POST['image_id']) ? (int)$_POST['image_id'] : 0;
     $vehicleId = isset($_POST['vehicle_id']) ? (int)$_POST['vehicle_id'] : 0;
@@ -21,5 +19,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
 redirect('/admin/vehicles/edit.php?id=' . $vehicleId);
+</body>
+</html>

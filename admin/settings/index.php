@@ -26,7 +26,7 @@ while ($row = $stmt->fetch()) {
 }
 
 $pageTitle = 'Settings - Smart Drive Car Hire';
-include __DIR__ . '/../includes/header.php';
+include __DIR__ . '/../../includes/header.php';
 ?>
 
 
@@ -44,6 +44,8 @@ include __DIR__ . '/../includes/header.php';
             <li><a href="<?php echo BASE_URL; ?>admin/payments/index.php"><i class="fas fa-credit-card"></i> Payments</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/clients/index.php"><i class="fas fa-users"></i> Clients</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/reports/index.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            <li><a href="<?php echo BASE_URL; ?>admin/categories/index.php"><i class="fas fa-tags"></i> Categories</a></li>
+            
             <li><a href="<?php echo BASE_URL; ?>admin/settings/index.php" class="active"><i class="fas fa-cog"></i> Settings</a></li>
             <li><a href="<?php echo BASE_URL; ?>logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
         </ul>
@@ -141,4 +143,3 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-<?php include __DIR__ . '/../includes/footer.php'; ?>

@@ -1,10 +1,8 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
-
 if (!isLoggedIn() || !isAdmin()) {
     redirect('/login.php');
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCsrf($_POST['csrf_token'] ?? '')) {
         redirect('/admin/payments/index.php');
@@ -25,15 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $pdo->prepare("UPDATE bookings SET status = 'Confirmed' WHERE id = ?")->execute([$payment['booking_id']]);
                 
-                $clientStmt = $pdo->prepare("SELECT user_id FROM users WHERE id = ?");
-                $clientStmt->execute([$payment['client_id']]);
-                $client = $clientStmt->fetch();
-                
-                if ($client) {
-                    createNotification($client['user_id'], 'Payment Verified', 
-                        'Your payment of ' . formatCurrency($payment['amount']) . ' has been verified.',
-                        'success', '/client/booking-details.php?id=' . $payment['booking_id']);
-                }
+                createNotification($payment['client_id'], 'Payment Verified', 
+                    'Your payment of ' . formatCurrency($payment['amount']) . ' has been verified.',
+                    'success', BASE_URL . 'client/booking-details.php?id=' . $payment['booking_id']);
                 
                 logActivity($_SESSION['user_id'], 'Payment Verified', "Verified payment #$paymentId of " . formatCurrency($payment['amount']));
             } else {
@@ -43,20 +35,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $pdo->prepare("UPDATE bookings SET status = 'Awaiting Payment' WHERE id = ?")->execute([$payment['booking_id']]);
                 
-                $clientStmt = $pdo->prepare("SELECT user_id FROM users WHERE id = ?");
-                $clientStmt->execute([$payment['client_id']]);
-                $client = $clientStmt->fetch();
-                
-                if ($client) {
-                    createNotification($client['user_id'], 'Payment Rejected', 
-                        'Your payment of ' . formatCurrency($payment['amount']) . ' has been rejected. Reason: ' . $rejectionReason,
-                        'error', '/client/payment.php?booking_id=' . $payment['booking_id']);
-                }
+                createNotification($payment['client_id'], 'Payment Rejected', 
+                    'Your payment of ' . formatCurrency($payment['amount']) . ' has been rejected. Reason: ' . $rejectionReason,
+                    'error', BASE_URL . 'client/payment.php?booking_id=' . $payment['booking_id']);
                 
                 logActivity($_SESSION['user_id'], 'Payment Rejected', "Rejected payment #$paymentId");
             }
         }
     }
 }
-
 redirect('/admin/payments/index.php');

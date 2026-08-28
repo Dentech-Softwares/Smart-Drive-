@@ -1,17 +1,13 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
-
 if (!isLoggedIn() || !isAdmin()) {
     redirect('/login.php');
 }
-
 $user = getCurrentUser();
-
 $bookingId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if (!$bookingId) {
     redirect('/admin/bookings/index.php');
 }
-
 $stmt = $pdo->prepare("SELECT b.*, u.full_name as client_name, u.email as client_email, u.phone as client_phone,
                        v.name as vehicle_name, v.brand, v.model, v.registration_number, v.transmission, v.fuel_type,
                        d.full_name as driver_name, d.phone as driver_phone
@@ -22,14 +18,11 @@ $stmt = $pdo->prepare("SELECT b.*, u.full_name as client_name, u.email as client
                        WHERE b.id = ?");
 $stmt->execute([$bookingId]);
 $booking = $stmt->fetch();
-
 if (!$booking) {
     redirect('/admin/bookings/index.php');
 }
-
 $message = '';
 $error = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $status = sanitize($_POST['status'] ?? '');
     $notes = sanitize($_POST['notes'] ?? '');
@@ -65,16 +58,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
 $payments = $pdo->prepare("SELECT * FROM payments WHERE booking_id = ?");
 $payments->execute([$bookingId]);
 $bookingPayments = $payments->fetchAll();
-
 $pageTitle = 'Booking Details - Smart Drive Car Hire';
 include __DIR__ . '/../../includes/header.php';
 ?>
-
-
 <div class="dashboard">
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -89,6 +78,8 @@ include __DIR__ . '/../../includes/header.php';
             <li><a href="<?php echo BASE_URL; ?>admin/payments/index.php"><i class="fas fa-credit-card"></i> Payments</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/clients/index.php"><i class="fas fa-users"></i> Clients</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/reports/index.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            <li><a href="<?php echo BASE_URL; ?>admin/categories/index.php"><i class="fas fa-tags"></i> Categories</a></li>
+            
             <?php if (isSuperAdmin()): ?>
                 <li><a href="<?php echo BASE_URL; ?>admin/settings/index.php"><i class="fas fa-cog"></i> Settings</a></li>
             <?php endif; ?>
@@ -96,7 +87,6 @@ include __DIR__ . '/../../includes/header.php';
         </ul>
     </aside>
     <div class="sidebar-overlay"></div>
-
     <main class="main-content">
         <div class="top-bar">
             <button id="sidebarToggle" class="sidebar-toggle"><i class="fas fa-bars"></i></button>
@@ -260,4 +250,5 @@ include __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
     </main>
 </div>
-<?php include __DIR__ . '/../../includes/footer.php'; ?>
+</body>
+</html>

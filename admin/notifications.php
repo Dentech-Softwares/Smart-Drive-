@@ -1,20 +1,15 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
-
 if (!isLoggedIn() || !isAdmin()) {
     redirect('/login.php');
 }
-
 $user = getCurrentUser();
 $notifications = $pdo->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50");
 $notifications->execute([$user['id']]);
 $notifications = $notifications->fetchAll();
-
 $pageTitle = 'Notifications - Smart Drive Car Hire';
 include __DIR__ . '/../includes/header.php';
 ?>
-
-
 <div class="dashboard">
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -29,6 +24,8 @@ include __DIR__ . '/../includes/header.php';
             <li><a href="<?php echo BASE_URL; ?>admin/payments/index.php"><i class="fas fa-credit-card"></i> Payments</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/clients/index.php"><i class="fas fa-users"></i> Clients</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/reports/index.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            <li><a href="<?php echo BASE_URL; ?>admin/categories/index.php"><i class="fas fa-tags"></i> Categories</a></li>
+            
             <?php if (isSuperAdmin()): ?>
                 <li><a href="<?php echo BASE_URL; ?>admin/settings/index.php"><i class="fas fa-cog"></i> Settings</a></li>
             <?php endif; ?>
@@ -36,7 +33,6 @@ include __DIR__ . '/../includes/header.php';
         </ul>
     </aside>
     <div class="sidebar-overlay"></div>
-
     <main class="main-content">
         <div class="top-bar">
             <button id="sidebarToggle" class="sidebar-toggle"><i class="fas fa-bars"></i></button>
@@ -86,14 +82,14 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-
-<script>
+<script>const BASE_URL = 'http://localhost/hayven_carhire/';
 function markAllRead() {
-    fetch('/api/notifications.php', {
+    fetch(BASE_URL + 'api/notifications.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'mark_all_read' })
     }).then(() => location.reload());
 }
 </script>
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+</body>
+</html>

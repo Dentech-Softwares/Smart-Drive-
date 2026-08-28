@@ -1,15 +1,11 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
-
 if (!isLoggedIn() || $_SESSION['role'] !== 'client') {
     redirect('/login.php');
 }
-
 $user = getCurrentUser();
 $clientId = $_SESSION['user_id'];
-
 $statusFilter = isset($_GET['status']) ? sanitize($_GET['status']) : '';
-
 $sql = "SELECT b.*, v.name as vehicle_name, v.brand, v.model, v.registration_number, 
                d.full_name as driver_name, vi.image_path as vehicle_image
         FROM bookings b
@@ -18,23 +14,17 @@ $sql = "SELECT b.*, v.name as vehicle_name, v.brand, v.model, v.registration_num
         LEFT JOIN vehicle_images vi ON v.id = vi.vehicle_id AND vi.is_primary = 1
         WHERE b.client_id = ?";
 $params = [$clientId];
-
 if ($statusFilter) {
     $sql .= " AND b.status = ?";
     $params[] = $statusFilter;
 }
-
 $sql .= " GROUP BY b.id ORDER BY b.created_at DESC";
-
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $bookings = $stmt->fetchAll();
-
 $pageTitle = 'My Bookings - Smart Drive Car Hire';
 include __DIR__ . '/../includes/header.php';
 ?>
-
-
 <div class="dashboard">
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -49,7 +39,6 @@ include __DIR__ . '/../includes/header.php';
         </ul>
     </aside>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
     <main class="main-content">
         <div class="top-bar">
             <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
@@ -87,7 +76,7 @@ include __DIR__ . '/../includes/header.php';
             <?php else: ?>
                 <table class="data-table">
                     <thead>
-                        <tr>
+                        <tr><th>#</th>
                             <th>Reference</th>
                             <th>Vehicle</th>
                             <th>Pickup</th>
@@ -98,9 +87,11 @@ include __DIR__ . '/../includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
+                        <?php $counter = 1; ?>
                         <?php foreach ($bookings as $booking): ?>
                             <tr>
-                                <td><strong><?php echo htmlspecialchars($booking['booking_reference']); ?></strong></td>
+                            <td><?php echo $counter++; ?></td>
+                            <td><strong><?php echo htmlspecialchars($booking['booking_reference']); ?></strong></td>
                                 <td><?php echo htmlspecialchars($booking['brand'] . ' ' . $booking['model']); ?></td>
                                 <td><?php echo formatDateTime($booking['pickup_datetime']); ?></td>
                                 <td><?php echo formatDateTime($booking['return_datetime']); ?></td>
@@ -117,5 +108,5 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+</body>
+</html>

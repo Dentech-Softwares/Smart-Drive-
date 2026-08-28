@@ -1,22 +1,16 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
-
 if (!isLoggedIn() || $_SESSION['role'] !== 'client') {
     redirect('/login.php');
 }
-
 $user = getCurrentUser();
 $clientId = $_SESSION['user_id'];
-
 $stmt = $pdo->prepare("SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50");
 $stmt->execute([$clientId]);
 $notifications = $stmt->fetchAll();
-
 $pageTitle = 'Notifications - Smart Drive Car Hire';
 include __DIR__ . '/../includes/header.php';
 ?>
-
-
 <div class="dashboard">
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -31,7 +25,6 @@ include __DIR__ . '/../includes/header.php';
         </ul>
     </aside>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
     <main class="main-content">
         <div class="top-bar">
             <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
@@ -82,15 +75,14 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-
-<script>
+<script>const BASE_URL = 'http://localhost/hayven_carhire/';
 function markAllRead() {
-    fetch('/api/notifications.php', {
+    fetch(BASE_URL + 'api/notifications.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'mark_all_read' })
     }).then(() => location.reload());
 }
 </script>
-
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+</body>
+</html>

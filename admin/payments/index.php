@@ -10,7 +10,7 @@ $user = getCurrentUser();
 $search = isset($_GET['search']) ? sanitize($_GET['search']) : '';
 $statusFilter = isset($_GET['status']) ? sanitize($_GET['status']) : '';
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$perPage = 10;
+$perPage = 1000;
 $offset = ($page - 1) * $perPage;
 
 $sql = "SELECT p.*, u.full_name as client_name, b.booking_reference, b.total_amount,
@@ -68,6 +68,8 @@ include __DIR__ . '/../../includes/header.php';
             <li><a href="<?php echo BASE_URL; ?>admin/payments/index.php" class="active"><i class="fas fa-credit-card"></i> Payments</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/clients/index.php"><i class="fas fa-users"></i> Clients</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/reports/index.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            <li><a href="<?php echo BASE_URL; ?>admin/categories/index.php"><i class="fas fa-tags"></i> Categories</a></li>
+            
             <?php if (isSuperAdmin()): ?>
                 <li><a href="<?php echo BASE_URL; ?>admin/settings/index.php"><i class="fas fa-cog"></i> Settings</a></li>
             <?php endif; ?>
@@ -111,7 +113,7 @@ include __DIR__ . '/../../includes/header.php';
             <?php else: ?>
                 <table class="data-table">
                     <thead>
-                        <tr>
+                        <tr><th>#</th>
                             <th>Client</th>
                             <th>Booking</th>
                             <th>Vehicle</th>
@@ -124,6 +126,7 @@ include __DIR__ . '/../../includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
+                        <?php $counter = 1; ?>
                         <?php foreach ($payments as $payment): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($payment['client_name']); ?></td>
@@ -178,4 +181,3 @@ include __DIR__ . '/../../includes/header.php';
         </div>
     </main>
 </div>
-<?php include __DIR__ . '/../../includes/footer.php'; ?>

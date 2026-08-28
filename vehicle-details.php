@@ -1,39 +1,31 @@
 <?php
 require_once __DIR__ . '/config/database.php';
-
 $vehicleId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-
 if (!$vehicleId) {
     redirect('/vehicles.php');
 }
-
 $stmt = $pdo->prepare("SELECT v.*, c.name as category_name FROM vehicles v 
                         JOIN vehicle_categories c ON v.category_id = c.id 
                         WHERE v.id = ? AND v.status = 'Available'");
 $stmt->execute([$vehicleId]);
 $vehicle = $stmt->fetch();
-
 if (!$vehicle) {
     redirect('/vehicles.php');
 }
-
 $pageTitle = $vehicle['brand'] . ' ' . $vehicle['model'] . ' - Smart Drive Car Hire';
 include __DIR__ . '/includes/header.php';
 include __DIR__ . '/includes/navbar.php';
-
 $images = $pdo->prepare("SELECT * FROM vehicle_images WHERE vehicle_id = ? ORDER BY is_primary DESC");
 $images->execute([$vehicleId]);
 $vehicleImages = $images->fetchAll();
-
 $today = date('Y-m-d\TH:i');
 ?>
-
 <section class="section">
     <div class="container">
         <div class="vehicle-details-grid">
             <div>
                 <div class="vehicle-gallery-main">
-                    <img id="mainImage" src="<?php echo $vehicleImages[0]['image_path'] ?? BASE_URL . 'assets/images/vehicles/default.jpg'; ?>" 
+                    <img id="mainImage" src="<?php echo ($vehicleImages[0]['image_path'] ? UPLOAD_URL . 'vehicles/' . $vehicleImages[0]['image_path'] : BASE_URL . 'assets/images/vehicles/default.jpg'); ?>" 
                          alt="<?php echo htmlspecialchars($vehicle['name']); ?>" 
                          onerror="this.src=BASE_URL . 'assets/images/vehicles/default.jpg'">
                     <span class="vehicle-badge"><?php echo htmlspecialchars($vehicle['category_name']); ?></span>
@@ -42,7 +34,7 @@ $today = date('Y-m-d\TH:i');
                 <?php if (count($vehicleImages) > 1): ?>
                     <div class="image-gallery">
                         <?php foreach ($vehicleImages as $img): ?>
-                            <img src="<?php echo $img['image_path']; ?>" 
+                            <img src="<?php echo UPLOAD_URL . 'vehicles/' . $img['image_path']; ?>" 
                                  alt="Vehicle image"
                                  class="img-thumb"
                                  onclick="document.getElementById('mainImage').src=this.src; this.parentElement.querySelectorAll('img').forEach(i => i.style.borderColor='transparent'); this.style.borderColor='var(--primary)';"
@@ -95,15 +87,17 @@ $today = date('Y-m-d\TH:i');
                         <form id="bookingForm" method="POST" action="<?php echo BASE_URL; ?>client/create-booking.php">
                             <input type="hidden" name="vehicle_id" value="<?php echo $vehicle['id']; ?>">
                             <input type="hidden" name="price_per_day" id="price_per_day" value="<?php echo $vehicle['price_per_day']; ?>">
-                            <input type="hidden" name="additional_cost" id="additional_cost" value="0">
+                            <input type="hidden" name="with_driver" id="with_driver_hidden" value="0">
                             
+                             <input type="hidden" name="pickup_location" value="Yard">
+                            <input type="hidden" name="return_location" value="Yard">
                             <div class="form-group">
                                 <label>Pickup Location</label>
-                                <input type="text" name="pickup_location" required placeholder="Enter pickup location">
+                                <input type="text" value="Yard" disabled style="background: #f4f7fa; color: var(--text-muted);">
                             </div>
                             <div class="form-group">
                                 <label>Return Location</label>
-                                <input type="text" name="return_location" required placeholder="Enter return location">
+                                <input type="text" value="Yard" disabled style="background: #f4f7fa; color: var(--text-muted);">
                             </div>
                             <div class="form-group">
                                 <label>Pickup Date & Time</label>
@@ -114,6 +108,14 @@ $today = date('Y-m-d\TH:i');
                                 <input type="datetime-local" name="return_datetime" id="return_datetime" required min="<?php echo $today; ?>">
                             </div>
                             
+                            <div class="form-group">
+                                <label>Drive Type *</label>
+                                <select name="with_driver" id="with_driver" required onchange="updateTotal()">
+                                    <option value="0">Self Drive</option>
+                                    <option value="1">With Driver (+KSh 1,000/day)</option>
+                                </select>
+                            </div>
+                            
                             <div class="booking-summary">
                                 <div class="summary-row">
                                     <span>Rental Days:</span>
@@ -122,6 +124,10 @@ $today = date('Y-m-d\TH:i');
                                 <div class="summary-row">
                                     <span>Vehicle Price:</span>
                                     <input type="text" name="vehicle_price" id="vehicle_price" readonly class="summary-input">
+                                </div>
+                                <div class="summary-row">
+                                    <span>Driver Cost:</span>
+                                    <input type="text" name="driver_cost" id="driver_cost" readonly class="summary-input" value="0.00">
                                 </div>
                                 <div class="summary-row summary-total">
                                     <strong>Total Amount:</strong>
@@ -139,12 +145,14 @@ $today = date('Y-m-d\TH:i');
         </div>
     </div>
 </section>
-
 <script>
+const DRIVER_COST_PER_DAY = 1000;
+
 function calculateRental() {
     const pickup = document.getElementById('pickup_datetime').value;
     const return_ = document.getElementById('return_datetime').value;
     const pricePerDay = parseFloat(document.getElementById('price_per_day').value) || 0;
+    const withDriver = document.getElementById('with_driver').value;
     
     if (pickup && return_ && pricePerDay > 0) {
         const start = new Date(pickup);
@@ -155,6 +163,11 @@ function calculateRental() {
         if (diffDays > 0) {
             document.getElementById('rental_days').value = diffDays;
             document.getElementById('vehicle_price').value = (diffDays * pricePerDay).toFixed(2);
+            
+            const driverCost = withDriver == 1 ? diffDays * DRIVER_COST_PER_DAY : 0;
+            document.getElementById('driver_cost').value = driverCost.toFixed(2);
+            document.getElementById('with_driver_hidden').value = withDriver;
+            
             updateTotal();
         }
     }
@@ -162,13 +175,14 @@ function calculateRental() {
 
 function updateTotal() {
     const vehiclePrice = parseFloat(document.getElementById('vehicle_price').value) || 0;
-    const additionalCost = parseFloat(document.getElementById('additional_cost').value) || 0;
-    const total = vehiclePrice + additionalCost;
+    const driverCost = parseFloat(document.getElementById('driver_cost').value) || 0;
+    const total = vehiclePrice + driverCost;
     document.getElementById('total_amount').value = total.toFixed(2);
 }
 
 document.getElementById('pickup_datetime')?.addEventListener('change', calculateRental);
 document.getElementById('return_datetime')?.addEventListener('change', calculateRental);
+document.getElementById('with_driver')?.addEventListener('change', calculateRental);
 </script>
-
-<?php include __DIR__ . '/includes/footer.php'; ?>
+</body>
+</html>

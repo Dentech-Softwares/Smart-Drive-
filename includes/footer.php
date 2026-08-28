@@ -1,51 +1,13 @@
-<footer class="footer">
+<footer class="footer" style="padding: 20px 0; background: #061426;">
     <div class="container">
-        <div class="footer-grid">
-            <div class="footer-brand">
-                <h3>SMART <span>DRIVE</span></h3>
-                <p><?php echo getSetting('site_tagline', 'Drive Your Journey With Confidence'); ?></p>
-                <div class="footer-social">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                </div>
-            </div>
-            
-            <div class="footer-links">
-                <h4>Quick Links</h4>
-                <ul>
-                    <li><a href="<?php echo BASE_URL; ?>">Home</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>vehicles.php">Vehicles</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>how-it-works.php">How It Works</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>about.php">About Us</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>contact.php">Contact</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-links">
-                <h4>Vehicle Categories</h4>
-                <ul>
-                    <li><a href="<?php echo BASE_URL; ?>vehicles.php?category=1">Sedan</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>vehicles.php?category=2">SUV</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>vehicles.php?category=3">Hatchback</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>vehicles.php?category=4">Van</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>vehicles.php?category=5">Luxury</a></li>
-                </ul>
-            </div>
-            
-            <div class="footer-links footer-contact">
-                <h4>Contact Info</h4>
-                <ul>
-                    <li><i class="fas fa-map-marker-alt"></i> <?php echo getSetting('site_address', 'Nairobi, Kenya'); ?></li>
-                    <li><i class="fas fa-phone"></i> <?php echo getSetting('site_phone', '+254 700 000 000'); ?></li>
-                    <li><i class="fas fa-envelope"></i> <?php echo getSetting('site_email', 'info@smartdrive.co.ke'); ?></li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="footer-bottom">
-            <p>&copy; <?php echo date('Y'); ?> <?php echo getSetting('site_name', 'Smart Drive Car Hire'); ?>. All Rights Reserved.</p>
+        <div class="footer-links" style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap;">
+            <ul style="list-style: none; display: flex; gap: 25px; margin: 0; padding: 0; flex-wrap: wrap; justify-content: center;">
+                <li><a href="<?php echo BASE_URL; ?>" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: color 0.3s;">Home</a></li>
+                <li><a href="<?php echo BASE_URL; ?>vehicles.php" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: color 0.3s;">Vehicles</a></li>
+                <li><a href="<?php echo BASE_URL; ?>how-it-works.php" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: color 0.3s;">How It Works</a></li>
+                <li><a href="<?php echo BASE_URL; ?>about.php" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: color 0.3s;">About</a></li>
+                <li><a href="<?php echo BASE_URL; ?>contact.php" style="color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: color 0.3s;">Contact</a></li>
+            </ul>
         </div>
     </div>
 </footer>

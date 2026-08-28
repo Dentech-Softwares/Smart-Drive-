@@ -1,27 +1,21 @@
 <?php
 require_once __DIR__ . '/../../config/database.php';
-
 if (!isLoggedIn() || !isAdmin()) {
     redirect('/login.php');
 }
-
 $user = getCurrentUser();
 $message = '';
 $error = '';
-
 $vehicleId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if (!$vehicleId) {
     redirect('/admin/vehicles/index.php');
 }
-
 $stmt = $pdo->prepare("SELECT * FROM vehicles WHERE id = ?");
 $stmt->execute([$vehicleId]);
 $vehicle = $stmt->fetch();
-
 if (!$vehicle) {
     redirect('/admin/vehicles/index.php');
 }
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_vehicle'])) {
     $categoryId = (int)($_POST['category_id'] ?? 0);
     $name = sanitize($_POST['name'] ?? '');
@@ -39,8 +33,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_vehicle'])) {
     if (empty($categoryId) || empty($name) || empty($brand) || empty($model) || empty($registrationNumber) || empty($transmission) || empty($fuelType)) {
         $error = 'Please fill in all required fields.';
     } else {
-        $stmt = $pdo->prepare("UPDATE vehicles SET category_id=?, name=?, brand=?, model=?, registration_number=?, year=?, transmission=?, fuel_type=?, seating_capacity=?, price_per_day=?, description=?, status=? WHERE id=?");
-        if ($stmt->execute([$categoryId, $name, $brand, $model, $registrationNumber, $year, $transmission, $fuelType, $seatingCapacity, $pricePerDay, $description, $status, $vehicleId])) {
+        $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM vehicles WHERE registration_number = ? AND id != ?");
+        $checkStmt->execute([$registrationNumber, $vehicleId]);
+        if ($checkStmt->fetchColumn() > 0) {
+            $error = "A vehicle with registration number '$registrationNumber' already exists.";
+        } else {
+            $stmt = $pdo->prepare("UPDATE vehicles SET category_id=?, name=?, brand=?, model=?, registration_number=?, year=?, transmission=?, fuel_type=?, seating_capacity=?, price_per_day=?, description=?, status=? WHERE id=?");
+            if ($stmt->execute([$categoryId, $name, $brand, $model, $registrationNumber, $year, $transmission, $fuelType, $seatingCapacity, $pricePerDay, $description, $status, $vehicleId])) {
             if (isset($_FILES['images']) && !empty($_FILES['images']['name'][0])) {
                 foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
                     if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK) {
@@ -72,17 +71,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_vehicle'])) {
         }
     }
 }
-
+}
 $categories = $pdo->query("SELECT * FROM vehicle_categories WHERE status = 'active' ORDER BY name")->fetchAll();
+$brands = ['Toyota', 'Nissan', 'Honda', 'Mazda', 'Mitsubishi', 'Subaru', 'Suzuki', 'Hyundai', 'Kia', 'Volkswagen', 'Audi', 'BMW', 'Mercedes-Benz', 'Lexus', 'Land Rover', 'Jeep', 'Ford', 'Chevrolet', 'Peugeot', 'Renault', 'Citroen', 'Fiat', 'Skoda', 'Volvo', 'Porsche', 'Jaguar', 'Alfa Romeo', 'Maserati', 'Genesis', 'BYD', 'Great Wall', 'Haval', 'Tata', 'Mahindra', 'Isuzu', 'MAN', 'Scania', 'Iveco', 'Dodge', 'Chrysler', 'Buick', 'Cadillac', 'Lincoln', 'Tesla', 'Rivian', 'Lucid', 'Polestar', 'Smart', 'Mini', 'Bentley', 'Rolls-Royce', 'Ferrari', 'Lamborghini', 'Aston Martin', 'McLaren', 'Maybach', 'Pagani', 'Bugatti'];
 $images = $pdo->prepare("SELECT * FROM vehicle_images WHERE vehicle_id = ?");
 $images->execute([$vehicleId]);
 $vehicleImages = $images->fetchAll();
-
 $pageTitle = 'Edit Vehicle - Smart Drive Car Hire';
 include __DIR__ . '/../../includes/header.php';
 ?>
-
-
 <div class="dashboard">
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -97,6 +94,8 @@ include __DIR__ . '/../../includes/header.php';
             <li><a href="<?php echo BASE_URL; ?>admin/payments/index.php"><i class="fas fa-credit-card"></i> Payments</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/clients/index.php"><i class="fas fa-users"></i> Clients</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/reports/index.php"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            <li><a href="<?php echo BASE_URL; ?>admin/categories/index.php"><i class="fas fa-tags"></i> Categories</a></li>
+            
             <?php if (isSuperAdmin()): ?>
                 <li><a href="<?php echo BASE_URL; ?>admin/settings/index.php"><i class="fas fa-cog"></i> Settings</a></li>
             <?php endif; ?>
@@ -104,7 +103,6 @@ include __DIR__ . '/../../includes/header.php';
         </ul>
     </aside>
     <div class="sidebar-overlay"></div>
-
     <main class="main-content">
         <div class="top-bar">
             <button id="sidebarToggle" class="sidebar-toggle"><i class="fas fa-bars"></i></button>
@@ -142,7 +140,14 @@ include __DIR__ . '/../../includes/header.php';
                         </div>
                         <div class="form-group">
                             <label>Brand *</label>
-                            <input type="text" name="brand" required value="<?php echo htmlspecialchars($vehicle['brand']); ?>">
+                            <select name="brand" required>
+                                <option value="">Select Brand</option>
+                                <?php foreach ($brands as $brandOption): ?>
+                                    <option value="<?php echo htmlspecialchars($brandOption); ?>" <?php echo $vehicle['brand'] === $brandOption ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($brandOption); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Model *</label>
@@ -232,4 +237,5 @@ include __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
     </main>
 </div>
-<?php include __DIR__ . '/../../includes/footer.php'; ?>
+</body>
+</html>

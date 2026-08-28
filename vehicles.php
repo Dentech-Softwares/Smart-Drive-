@@ -1,21 +1,17 @@
 <?php
 require_once __DIR__ . '/config/database.php';
-
 $pageTitle = 'Our Vehicles - Smart Drive Car Hire';
 include __DIR__ . '/includes/header.php';
 include __DIR__ . '/includes/navbar.php';
-
 $categoryFilter = isset($_GET['category']) ? (int)$_GET['category'] : 0;
 $transmissionFilter = isset($_GET['transmission']) ? sanitize($_GET['transmission']) : '';
 $fuelFilter = isset($_GET['fuel_type']) ? sanitize($_GET['fuel_type']) : '';
 $minPrice = isset($_GET['min_price']) ? (float)$_GET['min_price'] : 0;
 $maxPrice = isset($_GET['max_price']) ? (float)$_GET['max_price'] : 0;
-
 $sql = "SELECT v.*, c.name as category_name FROM vehicles v 
         JOIN vehicle_categories c ON v.category_id = c.id 
         WHERE v.status = 'Available'";
 $params = [];
-
 if ($categoryFilter > 0) {
     $sql .= " AND v.category_id = ?";
     $params[] = $categoryFilter;
@@ -36,16 +32,12 @@ if ($maxPrice > 0) {
     $sql .= " AND v.price_per_day <= ?";
     $params[] = $maxPrice;
 }
-
 $sql .= " ORDER BY v.created_at DESC";
-
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $vehicles = $stmt->fetchAll();
-
 $categories = $pdo->query("SELECT * FROM vehicle_categories WHERE status = 'active' ORDER BY name")->fetchAll();
 ?>
-
 <section class="section">
     <div class="container">
         <div class="section-title">
@@ -85,7 +77,6 @@ $categories = $pdo->query("SELECT * FROM vehicle_categories WHERE status = 'acti
                 <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Filter</button>
             </form>
         </div>
-
         <div class="category-filter">
             <a href="<?php echo BASE_URL; ?>vehicles.php<?php echo $transmissionFilter || $fuelFilter || $minPrice || $maxPrice ? '?transmission=' . urlencode($transmissionFilter) . '&fuel_type=' . urlencode($fuelFilter) . '&min_price=' . urlencode($minPrice) . '&max_price=' . urlencode($maxPrice) : ''; ?>" 
                class="category-chip <?php echo !$categoryFilter ? 'active' : ''; ?>">
@@ -162,5 +153,5 @@ $categories = $pdo->query("SELECT * FROM vehicle_categories WHERE status = 'acti
         <?php endif; ?>
     </div>
 </section>
-
-<?php include __DIR__ . '/includes/footer.php'; ?>
+</body>
+</html>

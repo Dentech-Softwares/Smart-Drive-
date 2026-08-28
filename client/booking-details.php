@@ -1,18 +1,14 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
-
 if (!isLoggedIn() || $_SESSION['role'] !== 'client') {
     redirect('/login.php');
 }
-
 $user = getCurrentUser();
 $clientId = $_SESSION['user_id'];
 $bookingId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-
 if (!$bookingId) {
     redirect('/client/bookings.php');
 }
-
 $stmt = $pdo->prepare("SELECT b.*, v.name as vehicle_name, v.brand, v.model, v.registration_number, 
                        v.transmission, v.fuel_type, v.seating_capacity, v.price_per_day,
                        d.full_name as driver_name, d.phone as driver_phone,
@@ -25,16 +21,12 @@ $stmt = $pdo->prepare("SELECT b.*, v.name as vehicle_name, v.brand, v.model, v.r
                        GROUP BY b.id");
 $stmt->execute([$bookingId, $clientId]);
 $booking = $stmt->fetch();
-
 if (!$booking) {
     redirect('/client/bookings.php');
 }
-
 $pageTitle = 'Booking Details - ' . $booking['booking_reference'] . ' - Smart Drive Car Hire';
 include __DIR__ . '/../includes/header.php';
 ?>
-
-
 <div class="dashboard">
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -49,7 +41,6 @@ include __DIR__ . '/../includes/header.php';
         </ul>
     </aside>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
     <main class="main-content">
         <div class="top-bar">
             <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
@@ -151,9 +142,20 @@ include __DIR__ . '/../includes/header.php';
                     </div>
                 </div>
                 <div style="margin-top: 15px;">
-                    <a href="<?php echo BASE_URL; ?>client/payment.php?booking_id=<?php echo $booking['id']; ?>" class="btn btn-primary">
-                        <i class="fas fa-credit-card"></i> Make Payment
-                    </a>
+                    <?php
+                    $paymentStatus = $pdo->prepare("SELECT status FROM payments WHERE booking_id = ? AND status = 'Verified' LIMIT 1");
+                    $paymentStatus->execute([$booking['id']]);
+                    $verifiedPayment = $paymentStatus->fetch();
+                    
+                    if ($verifiedPayment): ?>
+                        <span class="btn btn-success" style="padding: 11px 20px; border-radius: var(--radius-md); font-weight: 800; cursor: default;">
+                            <i class="fas fa-check-circle"></i> Payment Approved
+                        </span>
+                    <?php else: ?>
+                        <a href="<?php echo BASE_URL; ?>client/payment.php?booking_id=<?php echo $booking['id']; ?>" class="btn btn-primary">
+                            <i class="fas fa-credit-card"></i> Make Payment
+                        </a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -170,5 +172,5 @@ include __DIR__ . '/../includes/header.php';
         <?php endif; ?>
     </main>
 </div>
-
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+</body>
+</html>

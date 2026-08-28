@@ -1,15 +1,12 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
-
 if (!isLoggedIn() || $_SESSION['role'] !== 'client') {
     redirect('/login.php');
 }
-
 $user = getCurrentUser();
 $clientId = $_SESSION['user_id'];
 $success = '';
 $error = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['update_profile'])) {
         $fullName = sanitize($_POST['full_name'] ?? '');
@@ -70,12 +67,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
 $pageTitle = 'My Profile - Smart Drive Car Hire';
 include __DIR__ . '/../includes/header.php';
 ?>
-
-
 <div class="dashboard">
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -90,7 +84,6 @@ include __DIR__ . '/../includes/header.php';
         </ul>
     </aside>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
     <main class="main-content">
         <div class="top-bar">
             <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
@@ -176,7 +169,6 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-
 <script>
 function showTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
@@ -185,5 +177,5 @@ function showTab(tabId) {
     event.target.classList.add('active');
 }
 </script>
-
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+</body>
+</html>

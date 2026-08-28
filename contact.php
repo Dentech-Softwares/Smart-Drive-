@@ -1,13 +1,10 @@
 <?php
 require_once __DIR__ . '/config/database.php';
-
 $pageTitle = 'Contact Us - Smart Drive Car Hire';
 include __DIR__ . '/includes/header.php';
 include __DIR__ . '/includes/navbar.php';
-
 $success = '';
 $error = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName = sanitize($_POST['full_name'] ?? '');
     $email = sanitize($_POST['email'] ?? '');
@@ -29,7 +26,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
 <section class="section">
     <div class="container">
         <div class="section-title">
@@ -131,5 +127,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </section>
-
-<?php include __DIR__ . '/includes/footer.php'; ?>
+</body>
+</html>

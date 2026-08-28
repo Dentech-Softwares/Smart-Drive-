@@ -1,23 +1,17 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
-
 if (!isLoggedIn() || $_SESSION['role'] !== 'driver') {
     redirect('/login.php');
 }
-
 $user = getCurrentUser();
-
 $stmt = $pdo->prepare("SELECT * FROM drivers WHERE phone = ? OR email = ?");
 $stmt->execute([$user['phone'], $user['email']]);
 $driver = $stmt->fetch();
-
 if (!$driver) {
     redirect('/login.php');
 }
-
 $success = '';
 $error = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fullName = sanitize($_POST['full_name'] ?? '');
     $email = sanitize($_POST['email'] ?? '');
@@ -45,12 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
 $pageTitle = 'My Profile - Smart Drive Car Hire';
 include __DIR__ . '/../includes/header.php';
 ?>
-
-
 <div class="dashboard">
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -125,4 +116,5 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+</body>
+</html>

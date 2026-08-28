@@ -1,29 +1,22 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
-
 if (!isLoggedIn() || $_SESSION['role'] !== 'client') {
     redirect('/login.php');
 }
-
 $user = getCurrentUser();
 $clientId = $_SESSION['user_id'];
 $bookingId = isset($_GET['booking_id']) ? (int)$_GET['booking_id'] : 0;
-
 if (!$bookingId) {
     redirect('/client/bookings.php');
 }
-
 $stmt = $pdo->prepare("SELECT * FROM bookings WHERE id = ? AND client_id = ?");
 $stmt->execute([$bookingId, $clientId]);
 $booking = $stmt->fetch();
-
 if (!$booking) {
     redirect('/client/bookings.php');
 }
-
 $success = '';
 $error = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $paymentMethod = sanitize($_POST['payment_method'] ?? '');
     $transactionReference = sanitize($_POST['transaction_reference'] ?? '');
@@ -51,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($admins as $admin) {
                 createNotification($admin['id'], 'New Payment Submitted', 
                     'Payment of ' . formatCurrency($amount) . ' has been submitted for booking ' . $booking['booking_reference'],
-                    'info', '/admin/payments/index.php');
+                    'info', BASE_URL . 'admin/payments/index.php');
             }
             
             logActivity($clientId, 'Payment Submitted', 'Submitted payment of ' . formatCurrency($amount) . ' for booking ' . $booking['booking_reference']);
@@ -62,12 +55,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-
 $pageTitle = 'Make Payment - Smart Drive Car Hire';
 include __DIR__ . '/../includes/header.php';
 ?>
-
-
 <div class="dashboard">
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -82,7 +72,6 @@ include __DIR__ . '/../includes/header.php';
         </ul>
     </aside>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
     <main class="main-content">
         <div class="top-bar">
             <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
@@ -154,5 +143,5 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+</body>
+</html>

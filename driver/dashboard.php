@@ -1,24 +1,18 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
-
 if (!isLoggedIn() || $_SESSION['role'] !== 'driver') {
     redirect('/login.php');
 }
-
 $user = getCurrentUser();
-
 $stmt = $pdo->prepare("SELECT * FROM drivers WHERE phone = ? OR email = ?");
 $stmt->execute([$user['phone'], $user['email']]);
 $driver = $stmt->fetch();
-
 if (!$driver) {
     redirect('/login.php');
 }
-
 $assignedTrips = getCount('bookings', "driver_id = {$driver['id']} AND status = 'Assigned'");
 $activeTrips = getCount('bookings', "driver_id = {$driver['id']} AND status = 'Active'");
 $completedTrips = getCount('bookings', "driver_id = {$driver['id']} AND status = 'Completed'");
-
 $stmt = $pdo->prepare("SELECT b.*, u.full_name as client_name, u.phone as client_phone,
                        v.name as vehicle_name, v.brand, v.model, v.registration_number
                        FROM bookings b
@@ -29,12 +23,9 @@ $stmt = $pdo->prepare("SELECT b.*, u.full_name as client_name, u.phone as client
                        LIMIT 5");
 $stmt->execute([$driver['id']]);
 $upcomingTrips = $stmt->fetchAll();
-
 $pageTitle = 'Dashboard - Smart Drive Car Hire';
 include __DIR__ . '/../includes/header.php';
 ?>
-
-
 <div class="dashboard">
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -43,7 +34,7 @@ include __DIR__ . '/../includes/header.php';
         </div>
         <ul class="sidebar-nav">
             <li><a href="<?php echo BASE_URL; ?>driver/dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-            <li><a href="<?php echo BASE_URL; ?>driver/trips.php"><i class="fas fa-road"></i> My Trips</a></li>
+            <li><a href="<?php echo BASE_URL; ?>driver/trips.php"><i class="fas fa-road"></i> My Trips <?php if ($assignedTrips > 0): ?><span style="background: #16A34A; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;"><?php echo $assignedTrips; ?></span><?php endif; ?></a></li>
             <li><a href="<?php echo BASE_URL; ?>driver/profile.php"><i class="fas fa-user"></i> Profile</a></li>
             <li><a href="<?php echo BASE_URL; ?>logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
         </ul>
@@ -136,4 +127,5 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+</body>
+</html>
