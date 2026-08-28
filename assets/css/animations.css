@@ -1,0 +1,48 @@
+/* Animations — Smart Drive / Hayven Car Hire */
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: none; } }
+@keyframes slideInLeft { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+@keyframes slideInRight { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+@keyframes pulse { 50% { transform: scale(1.035); } }
+@keyframes float { 50% { transform: translateY(-8px); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+.animate-fadeIn { animation: fadeIn 0.55s ease both; }
+.animate-fadeInUp { animation: fadeInUp 0.65s cubic-bezier(0.2,0.7,0.2,1) both; }
+.animate-fadeInDown { animation: fadeInDown 0.55s ease both; }
+.animate-slideInLeft, .animate-fadeInLeft { animation: slideInLeft 0.65s cubic-bezier(0.2,0.7,0.2,1) both; }
+.animate-slideInRight, .animate-fadeInRight { animation: slideInRight 0.65s cubic-bezier(0.2,0.7,0.2,1) both; }
+.animate-scaleIn { animation: scaleIn 0.45s ease both; }
+.animate-pulse { animation: pulse 2.2s ease-in-out infinite; }
+.animate-float { animation: float 3.5s ease-in-out infinite; }
+
+.stagger-1 { animation-delay: 0.08s; }
+.stagger-2 { animation-delay: 0.16s; }
+.stagger-3 { animation-delay: 0.24s; }
+.stagger-4 { animation-delay: 0.32s; }
+.stagger-5 { animation-delay: 0.4s; }
+.stagger-6 { animation-delay: 0.48s; }
+
+.skeleton {
+    background: linear-gradient(90deg, #eef2f6 25%, #f8fafc 50%, #eef2f6 75%);
+    background-size: 200% 100%; animation: shimmer 1.4s infinite;
+    border-radius: var(--radius);
+}
+.skeleton-text { height: 15px; margin-bottom: 9px; }
+.skeleton-title { height: 24px; width: 58%; margin-bottom: 15px; }
+.skeleton-image { height: 200px; border-radius: var(--radius-lg); }
+
+.spinner {
+    width: 40px; height: 40px; border: 3px solid #e7ecf2;
+    border-top-color: var(--primary); border-radius: 50%;
+    animation: spin 0.75s linear infinite; margin: 20px auto;
+}
+.spinner-sm { width: 20px; height: 20px; border-width: 2px; }
+
+.hover-lift { transition: var(--transition); }
+.hover-lift:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+.hover-glow:hover { box-shadow: 0 0 0 5px rgba(201,21,46,0.06), var(--shadow); }
