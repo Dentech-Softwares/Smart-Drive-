@@ -88,7 +88,6 @@ include __DIR__ . '/../../includes/header.php';
     <aside class="sidebar">
         <div class="sidebar-header">
             <h3>SMART <span>DRIVE</span></h3>
-            <p><?php echo ucfirst($user['role']); ?> Panel</p>
         </div>
         <ul class="sidebar-nav">
             <li><a href="<?php echo BASE_URL; ?>admin/dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
@@ -98,6 +97,7 @@ include __DIR__ . '/../../includes/header.php';
             <li><a href="<?php echo BASE_URL; ?>admin/payments/index.php"><i class="fas fa-credit-card"></i> Payments</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/clients/index.php"><i class="fas fa-users"></i> Clients</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/reports/index.php" class="active"><i class="fas fa-chart-bar"></i> Reports</a></li>
+            <li><a href="<?php echo BASE_URL; ?>admin/categories/index.php"><i class="fas fa-tags"></i> Categories</a></li>
             
             <?php if (isSuperAdmin()): ?>
                 <li><a href="<?php echo BASE_URL; ?>admin/settings/index.php"><i class="fas fa-cog"></i> Settings</a></li>
@@ -167,8 +167,8 @@ include __DIR__ . '/../../includes/header.php';
         <div class="chart-container">
             <h4><?php echo ucfirst($reportType); ?> Report (<?php echo formatDate($startDate); ?> - <?php echo formatDate($endDate); ?>)</h4>
             <canvas id="reportChart"
-                data-labels="<?php echo $chartLabels; ?>"
-                data-values="<?php echo implode(',', $data); ?>">
+                data-labels="<?php echo htmlspecialchars(json_encode($labels), ENT_QUOTES); ?>"
+                data-values="<?php echo htmlspecialchars(implode(',', $data), ENT_QUOTES); ?>">
             </canvas>
         </div>
         

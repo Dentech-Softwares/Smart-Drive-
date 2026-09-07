@@ -43,10 +43,10 @@ include __DIR__ . '/../includes/header.php';
                 <div class="notification-list">
                     <?php foreach ($notifications as $notification): 
                         $typeColors = [
-                            'info' => '#0d6efd',
-                            'success' => '#198754',
-                            'warning' => '#ffc107',
-                            'error' => '#dc3545'
+                            'info' => 'bg-info',
+                            'success' => 'bg-success',
+                            'warning' => 'bg-warning',
+                            'error' => 'bg-danger'
                         ];
                         $typeIcons = [
                             'info' => 'fa-info-circle',
@@ -55,17 +55,16 @@ include __DIR__ . '/../includes/header.php';
                             'error' => 'fa-times-circle'
                         ];
                     ?>
-                        <div class="notification-item <?php echo !$notification['is_read'] ? 'unread' : ''; ?>" 
-                             style="display: flex; gap: 15px; padding: 20px; border-bottom: 1px solid var(--border); cursor: pointer;"
+                        <div class="notification-item notification-item-row <?php echo !$notification['is_read'] ? 'unread' : ''; ?>" 
                              onclick="<?php echo $notification['link'] ? "window.location.href='{$notification['link']}'" : ''; ?>">
-                            <div class="icon" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: white; background: <?php echo $typeColors[$notification['type']] ?? '#6c757d'; ?>; flex-shrink: 0;">
+                            <div class="icon <?php echo $typeColors[$notification['type']] ?? 'bg-secondary'; ?>">
                                 <i class="fas <?php echo $typeIcons[$notification['type']] ?? 'fa-bell'; ?>"></i>
                             </div>
-                            <div class="content" style="flex: 1;">
+                            <div class="content">
                                 <h5><?php echo htmlspecialchars($notification['title']); ?></h5>
                                 <p><?php echo htmlspecialchars($notification['message']); ?></p>
                             </div>
-                            <div class="time" style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">
+                            <div class="time">
                                 <?php echo timeAgo($notification['created_at']); ?>
                             </div>
                         </div>
@@ -75,7 +74,7 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-<script>const BASE_URL = 'http://localhost/hayven_carhire/';
+<script>const BASE_URL = '<?php echo BASE_URL; ?>';
 function markAllRead() {
     fetch(BASE_URL + 'api/notifications.php', {
         method: 'POST',

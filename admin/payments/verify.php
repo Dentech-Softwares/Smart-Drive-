@@ -23,6 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $pdo->prepare("UPDATE bookings SET status = 'Confirmed' WHERE id = ?")->execute([$payment['booking_id']]);
                 
+                $bookingStmt = $pdo->prepare("SELECT vehicle_id FROM bookings WHERE id = ?");
+                $bookingStmt->execute([$payment['booking_id']]);
+                $bookingData = $bookingStmt->fetch();
+                if ($bookingData && $bookingData['vehicle_id']) {
+                    $pdo->prepare("UPDATE vehicles SET status = 'Booked' WHERE id = ?")->execute([$bookingData['vehicle_id']]);
+                }
+                
                 createNotification($payment['client_id'], 'Payment Verified', 
                     'Your payment of ' . formatCurrency($payment['amount']) . ' has been verified.',
                     'success', BASE_URL . 'client/booking-details.php?id=' . $payment['booking_id']);
@@ -33,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->prepare("UPDATE payments SET status = 'Rejected', rejection_reason = ? WHERE id = ?")
                    ->execute([$rejectionReason, $paymentId]);
                 
-                $pdo->prepare("UPDATE bookings SET status = 'Awaiting Payment' WHERE id = ?")->execute([$payment['booking_id']]);
+                $pdo->prepare("UPDATE bookings SET status = 'Approved' WHERE id = ?")->execute([$payment['booking_id']]);
                 
                 createNotification($payment['client_id'], 'Payment Rejected', 
                     'Your payment of ' . formatCurrency($payment['amount']) . ' has been rejected. Reason: ' . $rejectionReason,

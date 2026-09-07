@@ -18,7 +18,6 @@ if (!$vehicle) {
 }
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_vehicle'])) {
     $categoryId = (int)($_POST['category_id'] ?? 0);
-    $name = sanitize($_POST['name'] ?? '');
     $brand = sanitize($_POST['brand'] ?? '');
     $model = sanitize($_POST['model'] ?? '');
     $registrationNumber = sanitize($_POST['registration_number'] ?? '');
@@ -30,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_vehicle'])) {
     $description = sanitize($_POST['description'] ?? '');
     $status = sanitize($_POST['status'] ?? 'Available');
     
-    if (empty($categoryId) || empty($name) || empty($brand) || empty($model) || empty($registrationNumber) || empty($transmission) || empty($fuelType)) {
+    if (empty($categoryId) || empty($brand) || empty($model) || empty($registrationNumber) || empty($transmission) || empty($fuelType)) {
         $error = 'Please fill in all required fields.';
     } else {
         $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM vehicles WHERE registration_number = ? AND id != ?");
@@ -38,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_vehicle'])) {
         if ($checkStmt->fetchColumn() > 0) {
             $error = "A vehicle with registration number '$registrationNumber' already exists.";
         } else {
-            $stmt = $pdo->prepare("UPDATE vehicles SET category_id=?, name=?, brand=?, model=?, registration_number=?, year=?, transmission=?, fuel_type=?, seating_capacity=?, price_per_day=?, description=?, status=? WHERE id=?");
-            if ($stmt->execute([$categoryId, $name, $brand, $model, $registrationNumber, $year, $transmission, $fuelType, $seatingCapacity, $pricePerDay, $description, $status, $vehicleId])) {
+            $stmt = $pdo->prepare("UPDATE vehicles SET category_id=?, brand=?, model=?, registration_number=?, year=?, transmission=?, fuel_type=?, seating_capacity=?, price_per_day=?, description=?, status=? WHERE id=?");
+            if ($stmt->execute([$categoryId, $brand, $model, $registrationNumber, $year, $transmission, $fuelType, $seatingCapacity, $pricePerDay, $description, $status, $vehicleId])) {
             if (isset($_FILES['images']) && !empty($_FILES['images']['name'][0])) {
                 foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
                     if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK) {
@@ -133,10 +132,6 @@ include __DIR__ . '/../../includes/header.php';
                                     </option>
                                 <?php endforeach; ?>
                             </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Vehicle Name *</label>
-                            <input type="text" name="name" required value="<?php echo htmlspecialchars($vehicle['name']); ?>">
                         </div>
                         <div class="form-group">
                             <label>Brand *</label>

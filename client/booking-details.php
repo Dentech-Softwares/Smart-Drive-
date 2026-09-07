@@ -93,11 +93,13 @@ include __DIR__ . '/../includes/header.php';
                 <div class="card-body">
                     <div class="booking-timeline">
                         <div class="timeline-item">
+                            <div class="timeline-icon"><i class="fas fa-sign-in-alt"></i></div>
                             <h5>Pickup</h5>
                             <p><?php echo formatDateTime($booking['pickup_datetime']); ?></p>
                             <p><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($booking['pickup_location']); ?></p>
                         </div>
                         <div class="timeline-item">
+                            <div class="timeline-icon"><i class="fas fa-sign-out-alt"></i></div>
                             <h5>Return</h5>
                             <p><?php echo formatDateTime($booking['return_datetime']); ?></p>
                             <p><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($booking['return_location']); ?></p>
@@ -136,6 +138,12 @@ include __DIR__ . '/../includes/header.php';
                         <span style="color: var(--text-muted);">Additional Cost:</span>
                         <strong><?php echo formatCurrency($booking['additional_cost']); ?></strong>
                     </div>
+                    <?php if ($booking['penalty'] > 0): ?>
+                        <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); color: var(--danger);">
+                            <span>Late Return Penalty:</span>
+                            <strong><?php echo formatCurrency($booking['penalty']); ?></strong>
+                        </div>
+                    <?php endif; ?>
                     <div style="display: flex; justify-content: space-between; padding: 15px 0; font-size: 1.1rem;">
                         <strong>Total Amount:</strong>
                         <strong style="color: var(--primary);"><?php echo formatCurrency($booking['total_amount']); ?></strong>
@@ -151,10 +159,27 @@ include __DIR__ . '/../includes/header.php';
                         <span class="btn btn-success" style="padding: 11px 20px; border-radius: var(--radius-md); font-weight: 800; cursor: default;">
                             <i class="fas fa-check-circle"></i> Payment Approved
                         </span>
-                    <?php else: ?>
+                    <?php elseif ($booking['status'] === 'Approved'): ?>
                         <a href="<?php echo BASE_URL; ?>client/payment.php?booking_id=<?php echo $booking['id']; ?>" class="btn btn-primary">
                             <i class="fas fa-credit-card"></i> Make Payment
                         </a>
+                        <?php if (in_array($booking['status'], ['Pending', 'Approved'])): ?>
+                            <button onclick="cancelBooking(<?php echo $booking['id']; ?>)" class="btn btn-outline" style="margin-left: 10px; border-color: var(--danger); color: var(--danger);">
+                                <i class="fas fa-times"></i> Cancel Booking
+                            </button>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                    
+                    <?php if ($booking['status'] === 'Confirmed'): ?>
+                        <button onclick="startTrip(<?php echo $booking['id']; ?>)" class="btn btn-primary" style="margin-left: 10px;">
+                            <i class="fas fa-play-circle"></i> Start Trip
+                        </button>
+                    <?php endif; ?>
+                    
+                    <?php if ($booking['status'] === 'Active'): ?>
+                        <button onclick="endTrip(<?php echo $booking['id']; ?>)" class="btn btn-danger" style="margin-left: 10px;">
+                            <i class="fas fa-stop-circle"></i> End Trip
+                        </button>
                     <?php endif; ?>
                 </div>
             </div>
@@ -172,5 +197,93 @@ include __DIR__ . '/../includes/header.php';
         <?php endif; ?>
     </main>
 </div>
+<script>
+const BASE_URL = '<?php echo BASE_URL; ?>';
+function endTrip(bookingId) {
+    Swal.fire({
+        title: 'End Trip?',
+        text: 'Are you sure you want to end this trip? Late returns will incur a penalty of KSh 200 per hour.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#C1121F',
+        confirmButtonText: 'Yes, end trip!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(BASE_URL + 'api/booking-actions.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'end_trip', booking_id: bookingId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({ 
+                        icon: 'success', 
+                        title: 'Trip Ended!', 
+                        text: data.penalty > 0 ? 'Trip ended with penalty: KSh ' + data.penalty : 'Trip ended successfully.',
+                        confirmButtonColor: '#C1121F' 
+                    }).then(() => location.reload());
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#C1121F' });
+                }
+            });
+        }
+    });
+}
+function startTrip(bookingId) {
+    Swal.fire({
+        title: 'Start Trip?',
+        text: 'Are you sure you want to start this trip?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#C1121F',
+        confirmButtonText: 'Yes, start trip!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(BASE_URL + 'api/booking-actions.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'start_trip', booking_id: bookingId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({ icon: 'success', title: 'Trip Started!', text: 'Your trip has started. Enjoy!', confirmButtonColor: '#C1121F' })
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#C1121F' });
+                }
+            });
+        }
+    });
+}
+function cancelBooking(bookingId) {
+    Swal.fire({
+        title: 'Cancel Booking?',
+        text: 'Are you sure you want to cancel this booking? This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#C1121F',
+        confirmButtonText: 'Yes, cancel!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(BASE_URL + 'api/booking-actions.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'cancel_booking', booking_id: bookingId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({ icon: 'success', title: 'Cancelled!', text: 'Booking has been cancelled.', confirmButtonColor: '#C1121F' })
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#C1121F' });
+                }
+            });
+        }
+    });
+}
+</script>
 </body>
 </html>

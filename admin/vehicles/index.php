@@ -66,7 +66,6 @@ include __DIR__ . '/../../includes/header.php';
     <aside class="sidebar">
         <div class="sidebar-header">
             <h3>SMART <span>DRIVE</span></h3>
-            <p><?php echo ucfirst($user['role']); ?> Panel</p>
         </div>
         <ul class="sidebar-nav">
             <li><a href="<?php echo BASE_URL; ?>admin/dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>

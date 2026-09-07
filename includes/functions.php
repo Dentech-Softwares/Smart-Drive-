@@ -53,7 +53,7 @@ function uploadFile($file, $directory = 'general') {
     $uploadPath = UPLOAD_DIR . $directory . '/';
     
     if (!is_dir($uploadPath)) {
-        mkdir($uploadPath, 0755, true);
+        mkdir($uploadPath, 0777, true);
     }
     
     $destination = $uploadPath . $filename;
@@ -183,7 +183,7 @@ function getVehiclePrimaryImage($vehicleId) {
 function getDriverStatusLabel($status) {
     $labels = [
         'Available' => '<span class="badge bg-success">Available</span>',
-        'Assigned' => '<span class="badge bg-primary">Assigned</span>',
+        'Confirmed' => '<span class="badge bg-primary">Assigned</span>',
         'On Trip' => '<span class="badge bg-warning text-dark">On Trip</span>',
         'Off Duty' => '<span class="badge bg-secondary">Off Duty</span>',
         'Inactive' => '<span class="badge bg-danger">Inactive</span>'
@@ -193,10 +193,9 @@ function getDriverStatusLabel($status) {
 function getBookingStatusLabel($status) {
     $labels = [
         'Pending' => '<span class="badge bg-warning text-dark">Pending</span>',
-        'Awaiting Payment' => '<span class="badge bg-info">Awaiting Payment</span>',
+        'Approved' => '<span class="badge bg-info">Awaiting Payment</span>',
         'Payment Submitted' => '<span class="badge bg-primary">Payment Submitted</span>',
         'Confirmed' => '<span class="badge bg-success">Confirmed</span>',
-        'Assigned' => '<span class="badge bg-primary">Assigned</span>',
         'Active' => '<span class="badge bg-primary">Active</span>',
         'Completed' => '<span class="badge bg-success">Completed</span>',
         'Cancelled' => '<span class="badge bg-danger">Cancelled</span>'

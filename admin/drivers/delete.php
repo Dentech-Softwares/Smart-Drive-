@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $driver = $stmt->fetch();
         
         if ($driver) {
-            $activeTrips = getCount('bookings', "driver_id = $driverId AND status IN ('Assigned', 'Active')");
+            $activeTrips = getCount('bookings', "driver_id = $driverId AND status IN ('Confirmed', 'Active')");
             
             if ($activeTrips > 0) {
                 $_SESSION['error'] = 'Cannot delete driver with active trips.';

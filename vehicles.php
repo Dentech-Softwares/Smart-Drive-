@@ -124,6 +124,9 @@ $categories = $pdo->query("SELECT * FROM vehicle_categories WHERE status = 'acti
                                  <i class="fas fa-car"></i>
                                  <?php echo htmlspecialchars($vehicle['category_name']); ?>
                              </span>
+                             <span class="status-badge <?php echo strtolower(str_replace(' ', '-', $vehicle['status'])); ?>">
+                                 <?php echo htmlspecialchars($vehicle['status']); ?>
+                             </span>
                         </div>
                         <div class="vehicle-card-body">
                             <h3><?php echo htmlspecialchars($vehicle['brand'] . ' ' . $vehicle['model']); ?></h3>

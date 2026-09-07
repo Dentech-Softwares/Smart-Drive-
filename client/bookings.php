@@ -47,13 +47,13 @@ include __DIR__ . '/../includes/header.php';
         </div>
         
         <div class="filter-bar">
-            <form method="GET" action="" class="form-row" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
-                <div class="form-group" style="flex: 1; min-width: 200px;">
+            <form method="GET" action="">
+                <div class="form-group">
                     <label>Filter by Status</label>
                     <select name="status" class="auto-submit">
                         <option value="">All Statuses</option>
                         <option value="Pending" <?php echo $statusFilter === 'Pending' ? 'selected' : ''; ?>>Pending</option>
-                        <option value="Awaiting Payment" <?php echo $statusFilter === 'Awaiting Payment' ? 'selected' : ''; ?>>Awaiting Payment</option>
+                        <option value="Approved" <?php echo $statusFilter === 'Approved' ? 'selected' : ''; ?>>Awaiting Payment</option>
                         <option value="Payment Submitted" <?php echo $statusFilter === 'Payment Submitted' ? 'selected' : ''; ?>>Payment Submitted</option>
                         <option value="Confirmed" <?php echo $statusFilter === 'Confirmed' ? 'selected' : ''; ?>>Confirmed</option>
                         <option value="Active" <?php echo $statusFilter === 'Active' ? 'selected' : ''; ?>>Active</option>

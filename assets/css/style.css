@@ -69,6 +69,8 @@ button, input, select, textarea { font: inherit; }
 .bg-success { background: var(--success) !important; }
 .bg-warning { background: var(--warning) !important; }
 .bg-danger { background: var(--danger) !important; }
+.bg-info { background: #0d6efd !important; }
+.bg-secondary { background: #6c757d !important; }
 .bg-primary { background: var(--primary) !important; }
 
 /* ========== BUTTONS ========== */
@@ -236,6 +238,17 @@ button, input, select, textarea { font: inherit; }
     display: inline-flex; align-items: center; gap: 6px;
 }
 .vehicle-badge i { font-size: 0.68rem; }
+
+.status-badge {
+    position: absolute; top: 15px; right: 15px; padding: 6px 11px;
+    border-radius: 999px; color: #fff; font-size: 0.68rem; font-weight: 800;
+    backdrop-filter: blur(7px); text-transform: uppercase; letter-spacing: 0.4px;
+}
+.status-badge.available { background: rgba(22,163,74,0.92); }
+.status-badge.booked { background: rgba(220,38,38,0.92); }
+.status-badge.on-trip { background: rgba(220,38,38,0.92); }
+.status-badge.maintenance { background: rgba(245,158,11,0.92); }
+.status-badge.inactive { background: rgba(100,116,139,0.92); }
 .vehicle-card-body { padding: 22px; }
 .vehicle-card-body h3 { font-size: 1.22rem; margin-bottom: 3px; }
 .vehicle-card-body .category { 
@@ -329,9 +342,11 @@ button, input, select, textarea { font: inherit; }
 .filter-bar {
     display: flex; align-items: flex-end; gap: 12px; padding: 18px;
     background: #fff; border: 1px solid var(--border); border-radius: 16px;
-    box-shadow: var(--shadow); margin-bottom: 25px;
+    box-shadow: var(--shadow); margin-bottom: 25px; flex-wrap: wrap;
 }
-.filter-bar .form-group { flex: 1; margin: 0; }
+.filter-bar form { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; width: 100%; }
+.filter-bar .form-group { flex: 1 1 180px; margin: 0; min-width: 150px; }
+.filter-bar .btn { margin-bottom: 2px; height: 48px; }
 
 .alert {
     padding: 13px 16px; border-radius: 12px; margin-bottom: 18px;

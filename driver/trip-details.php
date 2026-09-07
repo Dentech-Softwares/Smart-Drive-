@@ -81,11 +81,13 @@ include __DIR__ . '/../includes/header.php';
             <div class="card-body">
                 <div class="booking-timeline">
                     <div class="timeline-item">
+                        <div class="timeline-icon"><i class="fas fa-sign-in-alt"></i></div>
                         <h5>Pickup</h5>
                         <p><?php echo formatDateTime($booking['pickup_datetime']); ?></p>
                         <p><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($booking['pickup_location']); ?></p>
                     </div>
                     <div class="timeline-item">
+                        <div class="timeline-icon"><i class="fas fa-sign-out-alt"></i></div>
                         <h5>Return</h5>
                         <p><?php echo formatDateTime($booking['return_datetime']); ?></p>
                         <p><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($booking['return_location']); ?></p>
@@ -100,7 +102,7 @@ include __DIR__ . '/../includes/header.php';
             </div>
             <div class="card-body">
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <?php if ($booking['status'] === 'Assigned'): ?>
+                    <?php if ($booking['status'] === 'Confirmed'): ?>
                         <button onclick="updateTripStatus(<?php echo $booking['id']; ?>, 'Active')" class="btn btn-primary">
                             <i class="fas fa-play"></i> Start Trip
                         </button>
@@ -122,33 +124,70 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-<script>const BASE_URL = 'http://localhost/hayven_carhire/';
+<script>const BASE_URL = '<?php echo BASE_URL; ?>';
 function updateTripStatus(bookingId, status) {
-    Swal.fire({
-        title: 'Update Trip Status?',
-        text: 'This will update the booking and vehicle status.',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#8B0000',
-        confirmButtonText: 'Yes, update!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(BASE_URL + 'api/booking-actions.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'update_status', booking_id: bookingId, status: status })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
+    const confirmFn = typeof Swal !== 'undefined' ? Swal.fire : null;
+    const doUpdate = () => {
+        fetch(BASE_URL + 'api/booking-actions.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'update_status', booking_id: bookingId, status: status })
+        })
+        .then(response => {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json();
+            }
+            return response.text().then(text => {
+                console.error('Non-JSON response:', text);
+                throw new Error('Server error');
+            });
+        })
+        .then(data => {
+            if (data.success) {
+                if (confirmFn) {
                     Swal.fire({ icon: 'success', title: 'Updated!', text: data.message, confirmButtonColor: '#8B0000' })
                         .then(() => location.reload());
                 } else {
-                    Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#8B0000' });
+                    alert('Success: ' + data.message);
+                    location.reload();
                 }
-            });
+            } else {
+                if (confirmFn) {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Unknown error', confirmButtonColor: '#8B0000' });
+                } else {
+                    alert('Error: ' + (data.message || 'Unknown error'));
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            if (confirmFn) {
+                Swal.fire({ icon: 'error', title: 'Network Error', text: 'Could not reach the server.', confirmButtonColor: '#8B0000' });
+            } else {
+                alert('Network Error: Could not reach the server.');
+            }
+        });
+    };
+    
+    if (confirmFn) {
+        Swal.fire({
+            title: 'Update Trip Status?',
+            text: 'This will update the booking and vehicle status.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#8B0000',
+            confirmButtonText: 'Yes, update!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                doUpdate();
+            }
+        });
+    } else {
+        if (confirm('Update Trip Status? This will update the booking and vehicle status.')) {
+            doUpdate();
         }
-    });
+    }
 }
 function saveNotes(bookingId) {
     const notes = document.getElementById('tripNotes').value;

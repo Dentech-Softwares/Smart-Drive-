@@ -26,7 +26,7 @@ include __DIR__ . '/includes/navbar.php';
             <div class="step-card animate-fadeInUp stagger-3">
                 <div class="step-number">3</div>
                 <h4>Make Payment</h4>
-                <p>Select your preferred payment method - M-Pesa, Cash, or Bank Transfer. Upload proof of payment if required.</p>
+                <p>Select your preferred payment method - M-Pesa or Cash. Upload proof of payment if required.</p>
             </div>
             <div class="step-card animate-fadeInUp stagger-4">
                 <div class="step-number">4</div>

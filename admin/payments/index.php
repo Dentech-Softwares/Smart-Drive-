@@ -13,7 +13,7 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $perPage = 1000;
 $offset = ($page - 1) * $perPage;
 
-$sql = "SELECT p.*, u.full_name as client_name, b.booking_reference, b.total_amount,
+$sql = "SELECT p.*, u.full_name as client_name, b.id as booking_id, b.booking_reference, b.total_amount,
                v.name as vehicle_name, v.brand, v.model
         FROM payments p
         JOIN users u ON p.client_id = u.id
@@ -58,7 +58,7 @@ include __DIR__ . '/../../includes/header.php';
     <aside class="sidebar">
         <div class="sidebar-header">
             <h3>SMART <span>DRIVE</span></h3>
-            <p><?php echo ucfirst($user['role']); ?> Panel</p>
+            
         </div>
         <ul class="sidebar-nav">
             <li><a href="<?php echo BASE_URL; ?>admin/dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
@@ -119,7 +119,6 @@ include __DIR__ . '/../../includes/header.php';
                             <th>Vehicle</th>
                             <th>Amount</th>
                             <th>Method</th>
-                            <th>Reference</th>
                             <th>Status</th>
                             <th>Date</th>
                             <th>Actions</th>
@@ -129,29 +128,32 @@ include __DIR__ . '/../../includes/header.php';
                         <?php $counter = 1; ?>
                         <?php foreach ($payments as $payment): ?>
                             <tr>
+                                <td><?php echo $counter++; ?></td>
                                 <td><?php echo htmlspecialchars($payment['client_name']); ?></td>
                                 <td><?php echo htmlspecialchars($payment['booking_reference']); ?></td>
                                 <td><?php echo htmlspecialchars($payment['brand'] . ' ' . $payment['model']); ?></td>
                                 <td><strong><?php echo formatCurrency($payment['amount']); ?></strong></td>
                                 <td><?php echo $payment['payment_method']; ?></td>
-                                <td><?php echo htmlspecialchars($payment['transaction_reference'] ?? '-'); ?></td>
                                 <td><?php echo getPaymentStatusLabel($payment['status']); ?></td>
                                 <td><?php echo formatDate($payment['created_at']); ?></td>
                                 <td>
+                                    <a href="<?php echo BASE_URL; ?>admin/bookings/details.php?id=<?php echo $payment['booking_id']; ?>" class="btn btn-sm btn-outline" title="View Booking">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
                                     <?php if ($payment['status'] === 'Pending'): ?>
-                                        <form method="POST" action="<?php echo BASE_URL; ?>admin/payments/verify.php">
+                                        <form method="POST" action="<?php echo BASE_URL; ?>admin/payments/verify.php" style="display: inline;">
                                             <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
                                             <input type="hidden" name="payment_id" value="<?php echo $payment['id']; ?>">
                                             <input type="hidden" name="action" value="verify">
-                                            <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Verify this payment?')">
+                                            <button type="submit" class="btn btn-sm btn-success" title="Verify" onclick="return confirm('Verify this payment?')">
                                                 <i class="fas fa-check"></i>
                                             </button>
                                         </form>
-                                        <form method="POST" action="<?php echo BASE_URL; ?>admin/payments/verify.php">
+                                        <form method="POST" action="<?php echo BASE_URL; ?>admin/payments/verify.php" style="display: inline;">
                                             <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
                                             <input type="hidden" name="payment_id" value="<?php echo $payment['id']; ?>">
                                             <input type="hidden" name="action" value="reject">
-                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Reject this payment?')">
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Reject" onclick="return confirm('Reject this payment?')">
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         </form>
@@ -161,6 +163,7 @@ include __DIR__ . '/../../includes/header.php';
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+                
                 
                 <?php if ($totalPages > 1): ?>
                     <div class="pagination">

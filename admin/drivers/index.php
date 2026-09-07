@@ -14,7 +14,7 @@ $perPage = 1000;
 $offset = ($page - 1) * $perPage;
 
 $sql = "SELECT d.*, 
-        (SELECT COUNT(*) FROM bookings WHERE driver_id = d.id AND status IN ('Assigned', 'Active')) as active_trips
+        (SELECT COUNT(*) FROM bookings WHERE driver_id = d.id) as trips
         FROM drivers d WHERE 1=1";
 $params = [];
 $countSql = "SELECT COUNT(*) FROM drivers d WHERE 1=1";
@@ -54,8 +54,7 @@ include __DIR__ . '/../../includes/header.php';
     <aside class="sidebar">
         <div class="sidebar-header">
             <h3>SMART <span>DRIVE</span></h3>
-            <p><?php echo ucfirst($user['role']); ?> Panel</p>
-        </div>
+            </div>
         <ul class="sidebar-nav">
             <li><a href="<?php echo BASE_URL; ?>admin/dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/vehicles/index.php"><i class="fas fa-car"></i> Vehicles</a></li>
@@ -119,7 +118,7 @@ include __DIR__ . '/../../includes/header.php';
                             <th>License</th>
                             <th>Expiry</th>
                             <th>Status</th>
-                            <th>Active Trips</th>
+                            <th>Trips</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -138,12 +137,12 @@ include __DIR__ . '/../../includes/header.php';
                                 <td><?php echo htmlspecialchars($driver['license_number']); ?></td>
                                 <td><?php echo formatDate($driver['license_expiry']); ?></td>
                                 <td><?php echo getDriverStatusLabel($driver['status']); ?></td>
-                                <td><?php echo $driver['active_trips']; ?></td>
+                                <td><?php echo $driver['trips']; ?></td>
                                 <td>
                                     <a href="<?php echo BASE_URL; ?>admin/drivers/edit.php?id=<?php echo $driver['id']; ?>" class="btn btn-sm btn-outline">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <?php if ($driver['active_trips'] == 0): ?>
+                                    <?php if ($driver['trips'] == 0): ?>
                                         <form method="POST" action="<?php echo BASE_URL; ?>admin/drivers/delete.php" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this driver?');">
                                             <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
                                             <input type="hidden" name="driver_id" value="<?php echo $driver['id']; ?>">

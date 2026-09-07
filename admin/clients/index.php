@@ -45,8 +45,7 @@ include __DIR__ . '/../../includes/header.php';
     <aside class="sidebar">
         <div class="sidebar-header">
             <h3>SMART <span>DRIVE</span></h3>
-            <p><?php echo ucfirst($user['role']); ?> Panel</p>
-        </div>
+            </div>
         <ul class="sidebar-nav">
             <li><a href="<?php echo BASE_URL; ?>admin/dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/vehicles/index.php"><i class="fas fa-car"></i> Vehicles</a></li>
@@ -144,7 +143,7 @@ include __DIR__ . '/../../includes/header.php';
     </main>
 </div>
 
-<script>const BASE_URL = 'http://localhost/hayven_carhire/';
+<script>const BASE_URL = '<?php echo BASE_URL; ?>';
 function toggleStatus(userId, currentStatus) {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
     Swal.fire({

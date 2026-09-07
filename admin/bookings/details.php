@@ -30,27 +30,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($status)) {
         $stmt = $pdo->prepare("UPDATE bookings SET status = ?, notes = ? WHERE id = ?");
         if ($stmt->execute([$status, $notes, $bookingId])) {
-            if ($status === 'Active' && $booking['vehicle_id']) {
+            if ($status === 'Confirmed' && $booking['vehicle_id']) {
+                $pdo->prepare("UPDATE vehicles SET status = 'Booked' WHERE id = ?")->execute([$booking['vehicle_id']]);
+                if ($booking['driver_id']) {
+                    $pdo->prepare("UPDATE drivers SET status = 'Assigned' WHERE id = ?")->execute([$booking['driver_id']]);
+                }
+                createNotification($booking['client_id'], 'Booking Confirmed', 
+                    'Your booking ' . $booking['booking_reference'] . ' has been confirmed.',
+                    'success', BASE_URL . 'client/booking-details.php?id=' . $bookingId);
+            } elseif ($status === 'Active' && $booking['vehicle_id']) {
                 $pdo->prepare("UPDATE vehicles SET status = 'On Trip' WHERE id = ?")->execute([$booking['vehicle_id']]);
                 if ($booking['driver_id']) {
                     $pdo->prepare("UPDATE drivers SET status = 'On Trip' WHERE id = ?")->execute([$booking['driver_id']]);
                 }
+                createNotification($booking['client_id'], 'Trip Started', 
+                    'Your booking ' . $booking['booking_reference'] . ' has started. Enjoy your trip!',
+                    'info', BASE_URL . 'client/booking-details.php?id=' . $bookingId);
             } elseif ($status === 'Completed' && $booking['vehicle_id']) {
                 $pdo->prepare("UPDATE vehicles SET status = 'Available' WHERE id = ?")->execute([$booking['vehicle_id']]);
                 if ($booking['driver_id']) {
                     $pdo->prepare("UPDATE drivers SET status = 'Available' WHERE id = ?")->execute([$booking['driver_id']]);
                 }
+                createNotification($booking['client_id'], 'Trip Completed', 
+                    'Your booking ' . $booking['booking_reference'] . ' has been completed. Thank you for choosing Smart Drive!',
+                    'success', BASE_URL . 'client/booking-details.php?id=' . $bookingId);
             } elseif ($status === 'Cancelled' && $booking['vehicle_id']) {
                 $pdo->prepare("UPDATE vehicles SET status = 'Available' WHERE id = ?")->execute([$booking['vehicle_id']]);
                 if ($booking['driver_id']) {
                     $pdo->prepare("UPDATE drivers SET status = 'Available' WHERE id = ?")->execute([$booking['driver_id']]);
                 }
+                createNotification($booking['client_id'], 'Booking Cancelled', 
+                    'Your booking ' . $booking['booking_reference'] . ' has been cancelled.',
+                    'error', BASE_URL . 'client/booking-details.php?id=' . $bookingId);
+            } elseif ($status === 'Approved' && $booking['status'] === 'Pending') {
+                createNotification($booking['client_id'], 'Booking Approved', 
+                    'Your booking ' . $booking['booking_reference'] . ' has been approved. You can now make a payment.',
+                    'success', BASE_URL . 'client/booking-details.php?id=' . $bookingId);
             }
             
             logActivity($_SESSION['user_id'], 'Booking Updated', "Updated booking {$booking['booking_reference']} to $status");
             $message = 'Booking updated successfully!';
             
-            $stmt = $pdo->prepare("SELECT * FROM bookings WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT b.*, u.full_name as client_name, u.email as client_email, u.phone as client_phone,
+                                   v.name as vehicle_name, v.brand, v.model, v.registration_number, v.transmission, v.fuel_type,
+                                   d.full_name as driver_name, d.phone as driver_phone
+                                   FROM bookings b
+                                   JOIN users u ON b.client_id = u.id
+                                   JOIN vehicles v ON b.vehicle_id = v.id
+                                   LEFT JOIN drivers d ON b.driver_id = d.id
+                                   WHERE b.id = ?");
             $stmt->execute([$bookingId]);
             $booking = $stmt->fetch();
         } else {
@@ -135,11 +163,13 @@ include __DIR__ . '/../../includes/header.php';
             <div class="card-body">
                 <div class="booking-timeline">
                     <div class="timeline-item">
+                        <div class="timeline-icon"><i class="fas fa-sign-in-alt"></i></div>
                         <h5>Pickup</h5>
                         <p><?php echo formatDateTime($booking['pickup_datetime']); ?></p>
                         <p><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($booking['pickup_location']); ?></p>
                     </div>
                     <div class="timeline-item">
+                        <div class="timeline-icon"><i class="fas fa-sign-out-alt"></i></div>
                         <h5>Return</h5>
                         <p><?php echo formatDateTime($booking['return_datetime']); ?></p>
                         <p><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($booking['return_location']); ?></p>
@@ -166,6 +196,12 @@ include __DIR__ . '/../../includes/header.php';
                         <span>Additional Cost:</span>
                         <strong><?php echo formatCurrency($booking['additional_cost']); ?></strong>
                     </div>
+                    <?php if ($booking['penalty'] > 0): ?>
+                        <div>
+                            <span style="color: var(--danger);">Late Return Penalty:</span>
+                            <strong style="color: var(--danger);"><?php echo formatCurrency($booking['penalty']); ?></strong>
+                        </div>
+                    <?php endif; ?>
                     <div>
                         <strong>Total Amount:</strong>
                         <strong><?php echo formatCurrency($booking['total_amount']); ?></strong>
@@ -174,7 +210,27 @@ include __DIR__ . '/../../includes/header.php';
             </div>
         </div>
         
-        <?php if (in_array($booking['status'], ['Confirmed', 'Awaiting Payment', 'Payment Submitted']) && !$booking['driver_id']): ?>
+        <?php if ($booking['status'] === 'Pending'): ?>
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-check-circle"></i> Approve Booking</h3>
+                </div>
+                <div class="card-body">
+                    <p>This booking is pending your approval.</p>
+                    <form method="POST" action="" style="display: flex; gap: 10px;">
+                        <input type="hidden" name="status" value="Approved">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Approve Booking
+                        </button>
+                        <button type="submit" name="reject" class="btn btn-danger" onclick="document.querySelector('input[name=\"status\"]').value='Cancelled'">
+                            <i class="fas fa-times"></i> Reject Booking
+                        </button>
+                    </form>
+                </div>
+            </div>
+        <?php endif; ?>
+        
+        <?php if (in_array($booking['status'], ['Confirmed', 'Approved', 'Payment Submitted']) && !$booking['driver_id']): ?>
             <div class="card">
                 <div class="card-header">
                     <h3><i class="fas fa-user-plus"></i> Assign Driver</h3>
@@ -197,10 +253,9 @@ include __DIR__ . '/../../includes/header.php';
                         <label>Status</label>
                         <select name="status">
                             <option value="Pending" <?php echo $booking['status'] === 'Pending' ? 'selected' : ''; ?>>Pending</option>
-                            <option value="Awaiting Payment" <?php echo $booking['status'] === 'Awaiting Payment' ? 'selected' : ''; ?>>Awaiting Payment</option>
+                            <option value="Approved" <?php echo $booking['status'] === 'Approved' ? 'selected' : ''; ?>>Approved</option>
                             <option value="Payment Submitted" <?php echo $booking['status'] === 'Payment Submitted' ? 'selected' : ''; ?>>Payment Submitted</option>
                             <option value="Confirmed" <?php echo $booking['status'] === 'Confirmed' ? 'selected' : ''; ?>>Confirmed</option>
-                            <option value="Assigned" <?php echo $booking['status'] === 'Assigned' ? 'selected' : ''; ?>>Assigned</option>
                             <option value="Active" <?php echo $booking['status'] === 'Active' ? 'selected' : ''; ?>>Active</option>
                             <option value="Completed" <?php echo $booking['status'] === 'Completed' ? 'selected' : ''; ?>>Completed</option>
                             <option value="Cancelled" <?php echo $booking['status'] === 'Cancelled' ? 'selected' : ''; ?>>Cancelled</option>

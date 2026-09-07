@@ -33,24 +33,27 @@ function initCharts() {
         });
     }
     
-    // Revenue Chart
-    const revenueCtx = document.getElementById('revenueChart');
-    if (revenueCtx) {
-        new Chart(revenueCtx, {
-            type: 'line',
+    // Reports Chart
+    const reportCtx = document.getElementById('reportChart');
+    if (reportCtx) {
+        const labels = reportCtx.dataset.labels ? JSON.parse(reportCtx.dataset.labels) : [];
+        const values = reportCtx.dataset.values ? reportCtx.dataset.values.split(',').map(v => v.trim() !== '' ? Number(v) : 0) : [];
+        
+        const isRevenue = values.some(v => v > 1000);
+        const chartType = isRevenue ? 'line' : 'bar';
+        
+        new Chart(reportCtx, {
+            type: chartType,
             data: {
-                labels: revenueCtx.dataset.labels ? revenueCtx.dataset.labels.split(',') : [],
+                labels: labels,
                 datasets: [{
-                    label: 'Revenue (KES)',
-                    data: revenueCtx.dataset.values ? revenueCtx.dataset.values.split(',').map(Number) : [],
+                    label: 'Count',
+                    data: values,
+                    backgroundColor: 'rgba(139, 0, 0, 0.8)',
                     borderColor: 'rgba(139, 0, 0, 1)',
-                    backgroundColor: 'rgba(139, 0, 0, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: 'rgba(139, 0, 0, 1)',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 5
+                    borderWidth: 1,
+                    tension: chartType === 'line' ? 0.4 : 0,
+                    fill: chartType === 'line'
                 }]
             },
             options: {
@@ -61,12 +64,7 @@ function initCharts() {
                 },
                 scales: {
                     y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return 'KSh ' + value.toLocaleString();
-                            }
-                        }
+                        beginAtZero: true
                     }
                 }
             }
@@ -152,7 +150,7 @@ function updateTripStatus(bookingId, status) {
         confirmButtonText: 'Yes, update!'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch('/api/booking-actions.php', {
+                fetch((typeof BASE_URL !== 'undefined' ? BASE_URL : '/') + 'api/booking-actions.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -39,9 +39,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($overlapCheck->fetch()['count'] > 0) {
                 $error = 'Driver has overlapping bookings during this period.';
             } else {
-                $stmt = $pdo->prepare("UPDATE bookings SET driver_id = ?, status = 'Assigned' WHERE id = ?");
+                $stmt = $pdo->prepare("UPDATE bookings SET driver_id = ? WHERE id = ?");
                 if ($stmt->execute([$driverId, $bookingId])) {
                     $pdo->prepare("UPDATE drivers SET status = 'Assigned' WHERE id = ?")->execute([$driverId]);
+                    $pdo->prepare("UPDATE vehicles SET status = 'Booked' WHERE id = ?")->execute([$booking['vehicle_id']]);
                     
                     createNotification($booking['client_id'], 'Driver Assigned', 
                         'A driver has been assigned to your booking ' . $booking['booking_reference'],

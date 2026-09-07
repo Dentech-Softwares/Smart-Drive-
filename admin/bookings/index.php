@@ -59,8 +59,7 @@ include __DIR__ . '/../../includes/header.php';
     <aside class="sidebar">
         <div class="sidebar-header">
             <h3>SMART <span>DRIVE</span></h3>
-            <p><?php echo ucfirst($user['role']); ?> Panel</p>
-        </div>
+            </div>
         <ul class="sidebar-nav">
             <li><a href="<?php echo BASE_URL; ?>admin/dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/vehicles/index.php"><i class="fas fa-car"></i> Vehicles</a></li>
@@ -96,7 +95,7 @@ include __DIR__ . '/../../includes/header.php';
                     <select name="status" class="auto-submit">
                         <option value="">All Statuses</option>
                         <option value="Pending" <?php echo $statusFilter === 'Pending' ? 'selected' : ''; ?>>Pending</option>
-                        <option value="Awaiting Payment" <?php echo $statusFilter === 'Awaiting Payment' ? 'selected' : ''; ?>>Awaiting Payment</option>
+                        <option value="Approved" <?php echo $statusFilter === 'Approved' ? 'selected' : ''; ?>>Awaiting Payment</option>
                         <option value="Payment Submitted" <?php echo $statusFilter === 'Payment Submitted' ? 'selected' : ''; ?>>Payment Submitted</option>
                         <option value="Confirmed" <?php echo $statusFilter === 'Confirmed' ? 'selected' : ''; ?>>Confirmed</option>
                         <option value="Active" <?php echo $statusFilter === 'Active' ? 'selected' : ''; ?>>Active</option>
@@ -143,7 +142,7 @@ include __DIR__ . '/../../includes/header.php';
                                 <td><?php echo getBookingStatusLabel($booking['status']); ?></td>
                                 <td>
                                     <a href="<?php echo BASE_URL; ?>admin/bookings/details.php?id=<?php echo $booking['id']; ?>" class="btn btn-sm btn-outline">View</a>
-                                    <?php if (in_array($booking['status'], ['Confirmed', 'Awaiting Payment', 'Payment Submitted']) && !$booking['driver_id']): ?>
+                                    <?php if (in_array($booking['status'], ['Confirmed', 'Approved', 'Payment Submitted']) && !$booking['driver_id']): ?>
                                         <a href="<?php echo BASE_URL; ?>admin/bookings/assign.php?id=<?php echo $booking['id']; ?>" class="btn btn-sm btn-primary">
                                             <i class="fas fa-user-plus"></i> Assign
                                         </a>

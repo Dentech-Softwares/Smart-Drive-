@@ -80,7 +80,6 @@ include __DIR__ . '/includes/navbar.php';
         <?php
         $vehicles = $pdo->query("SELECT v.*, c.name as category_name FROM vehicles v 
                                   JOIN vehicle_categories c ON v.category_id = c.id 
-                                  WHERE v.status = 'Available' 
                                   ORDER BY v.created_at DESC 
                                   LIMIT 6")->fetchAll();
         
@@ -101,7 +100,10 @@ include __DIR__ . '/includes/navbar.php';
                             <img src="<?php echo $image ?: BASE_URL . 'assets/images/vehicles/default.jpg'; ?>" 
                                  alt="<?php echo htmlspecialchars($vehicle['name']); ?>"
                                  onerror="this.src=BASE_URL . 'assets/images/vehicles/default.jpg'">
-                            <span class="vehicle-badge"><?php echo htmlspecialchars($vehicle['category_name']); ?></span>
+                             <span class="vehicle-badge"><?php echo htmlspecialchars($vehicle['category_name']); ?></span>
+                             <span class="status-badge <?php echo strtolower(str_replace(' ', '-', $vehicle['status'])); ?>">
+                                 <?php echo htmlspecialchars($vehicle['status']); ?>
+                             </span>
                         </div>
                         <div class="vehicle-card-body">
                             <h3><?php echo htmlspecialchars($vehicle['brand'] . ' ' . $vehicle['model']); ?></h3>

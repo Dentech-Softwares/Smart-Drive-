@@ -6,7 +6,7 @@ if (!isLoggedIn() || !isAdmin()) {
 $user = getCurrentUser();
 $totalVehicles = getCount('vehicles');
 $availableVehicles = getCount('vehicles', "status = 'Available'");
-$activeBookings = getCount('bookings', "status IN ('Confirmed', 'Assigned', 'Active')");
+$activeBookings = getCount('bookings', "status IN ('Confirmed', 'Active')");
 $pendingBookings = getCount('bookings', "status = 'Pending'");
 $totalClients = getCount('users', "role = 'client' AND status = 'active'");
 $totalDrivers = getCount('drivers');
@@ -28,8 +28,7 @@ include __DIR__ . '/../includes/header.php';
     <aside class="sidebar">
         <div class="sidebar-header">
             <h3>SMART <span>DRIVE</span></h3>
-            <p><?php echo ucfirst($user['role']); ?> Panel</p>
-        </div>
+            </div>
         <ul class="sidebar-nav">
             <li><a href="<?php echo BASE_URL; ?>admin/dashboard.php" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/vehicles/index.php"><i class="fas fa-car"></i> Vehicles</a></li>
@@ -145,11 +144,11 @@ include __DIR__ . '/../includes/header.php';
         <div class="dashboard-grid">
             <div class="chart-container">
                 <h4>Booking Status Distribution</h4>
-                <canvas id="bookingStatsChart"
-                    data-labels="Pending,Awaiting Payment,Confirmed,Active,Completed,Cancelled"
+                 <canvas id="bookingStatsChart"
+                    data-labels="Pending,Approved,Confirmed,Active,Completed,Cancelled"
                     data-values="<?php 
                         echo getCount('bookings', "status = 'Pending'") . ',';
-                        echo getCount('bookings', "status = 'Awaiting Payment'") . ',';
+                        echo getCount('bookings', "status = 'Approved'") . ',';
                         echo getCount('bookings', "status = 'Confirmed'") . ',';
                         echo getCount('bookings', "status = 'Active'") . ',';
                         echo getCount('bookings', "status = 'Completed'") . ',';

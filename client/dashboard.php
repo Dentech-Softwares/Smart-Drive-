@@ -6,9 +6,9 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'client') {
 $user = getCurrentUser();
 $clientId = $_SESSION['user_id'];
 $totalBookings = getCount('bookings', "client_id = $clientId");
-$activeBookings = getCount('bookings', "client_id = $clientId AND status IN ('Confirmed', 'Assigned', 'Active')");
+$activeBookings = getCount('bookings', "client_id = $clientId AND status IN ('Confirmed', 'Active')");
 $completedBookings = getCount('bookings', "client_id = $clientId AND status = 'Completed'");
-$pendingPayments = getCount('bookings', "client_id = $clientId AND status = 'Awaiting Payment'");
+$pendingPayments = getCount('bookings', "client_id = $clientId AND status = 'Approved'");
 $stmt = $pdo->prepare("SELECT b.*, v.name as vehicle_name, v.brand, v.model, v.registration_number, 
                        d.full_name as driver_name FROM bookings b
                        JOIN vehicles v ON b.vehicle_id = v.id

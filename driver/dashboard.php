@@ -10,7 +10,7 @@ $driver = $stmt->fetch();
 if (!$driver) {
     redirect('/login.php');
 }
-$assignedTrips = getCount('bookings', "driver_id = {$driver['id']} AND status = 'Assigned'");
+$assignedTrips = getCount('bookings', "driver_id = {$driver['id']} AND status = 'Confirmed'");
 $activeTrips = getCount('bookings', "driver_id = {$driver['id']} AND status = 'Active'");
 $completedTrips = getCount('bookings', "driver_id = {$driver['id']} AND status = 'Completed'");
 $stmt = $pdo->prepare("SELECT b.*, u.full_name as client_name, u.phone as client_phone,
@@ -18,7 +18,7 @@ $stmt = $pdo->prepare("SELECT b.*, u.full_name as client_name, u.phone as client
                        FROM bookings b
                        JOIN users u ON b.client_id = u.id
                        JOIN vehicles v ON b.vehicle_id = v.id
-                       WHERE b.driver_id = ? AND b.status IN ('Assigned', 'Active')
+                       WHERE b.driver_id = ? AND b.status IN ('Confirmed', 'Active')
                        ORDER BY b.pickup_datetime DESC
                        LIMIT 5");
 $stmt->execute([$driver['id']]);

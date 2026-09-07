@@ -8,7 +8,6 @@ $message = '';
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_vehicle'])) {
     $categoryId = (int)($_POST['category_id'] ?? 0);
-    $name = sanitize($_POST['name'] ?? '');
     $brand = sanitize($_POST['brand'] ?? '');
     $model = sanitize($_POST['model'] ?? '');
     $registrationNumber = sanitize($_POST['registration_number'] ?? '');
@@ -20,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_vehicle'])) {
     $description = sanitize($_POST['description'] ?? '');
     $status = sanitize($_POST['status'] ?? 'Available');
     
-    if (empty($categoryId) || empty($name) || empty($brand) || empty($model) || empty($registrationNumber) || empty($transmission) || empty($fuelType)) {
+    if (empty($categoryId) || empty($brand) || empty($model) || empty($registrationNumber) || empty($transmission) || empty($fuelType)) {
         $error = 'Please fill in all required fields.';
     } else {
         $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM vehicles WHERE registration_number = ?");
@@ -28,9 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_vehicle'])) {
         if ($checkStmt->fetchColumn() > 0) {
             $error = "A vehicle with registration number '$registrationNumber' already exists.";
         } else {
-            $stmt = $pdo->prepare("INSERT INTO vehicles (category_id, name, brand, model, registration_number, year, transmission, fuel_type, seating_capacity, price_per_day, description, status) 
-                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            if ($stmt->execute([$categoryId, $name, $brand, $model, $registrationNumber, $year, $transmission, $fuelType, $seatingCapacity, $pricePerDay, $description, $status])) {
+            $stmt = $pdo->prepare("INSERT INTO vehicles (category_id, brand, model, registration_number, year, transmission, fuel_type, seating_capacity, price_per_day, description, status) 
+                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            if ($stmt->execute([$categoryId, $brand, $model, $registrationNumber, $year, $transmission, $fuelType, $seatingCapacity, $pricePerDay, $description, $status])) {
             $vehicleId = $pdo->lastInsertId();
             
             if (isset($_FILES['images']) && !empty($_FILES['images']['name'][0])) {
@@ -117,10 +116,6 @@ include __DIR__ . '/../../includes/header.php';
                                     <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['name']); ?></option>
                                 <?php endforeach; ?>
                             </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Vehicle Name *</label>
-                            <input type="text" name="name" required placeholder="e.g. Toyota Corolla">
                         </div>
                         <div class="form-group">
                             <label>Brand *</label>
