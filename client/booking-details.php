@@ -59,7 +59,7 @@ include __DIR__ . '/../includes/header.php';
                     <div style="display: flex; gap: 20px; margin-bottom: 20px;">
                         <img src="<?php echo $booking['vehicle_image'] ?: BASE_URL . 'assets/images/vehicles/default.jpg'; ?>" 
                              alt="Vehicle" style="width: 120px; height: 90px; object-fit: cover; border-radius: var(--radius);"
-                             onerror="this.src=BASE_URL . 'assets/images/vehicles/default.jpg'">
+                              onerror="this.src='<?php echo BASE_URL; ?>assets/images/vehicles/default.jpg'">
                         <div>
                             <h4 style="font-weight: 700; margin-bottom: 5px;"><?php echo htmlspecialchars($booking['brand'] . ' ' . $booking['model']); ?></h4>
                             <p style="color: var(--text-muted); margin: 0;"><?php echo htmlspecialchars($booking['vehicle_name']); ?></p>

@@ -73,7 +73,7 @@ include __DIR__ . '/../includes/header.php';
         <div class="profile-header">
             <img src="<?php echo $driver['profile_image'] ? UPLOAD_URL . 'drivers/' . $driver['profile_image'] : BASE_URL . '/assets/images/drivers/default.jpg'; ?>" 
                  alt="Profile" class="profile-avatar"
-                 onerror="this.src=BASE_URL . 'assets/images/drivers/default.jpg'">
+                 onerror="this.src='<?php echo BASE_URL; ?>assets/images/drivers/default.jpg'">
             <div class="profile-info">
                 <h2><?php echo htmlspecialchars($driver['full_name']); ?></h2>
                 <p><?php echo htmlspecialchars($driver['phone']); ?></p>

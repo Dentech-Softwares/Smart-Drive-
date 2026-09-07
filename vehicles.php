@@ -119,7 +119,7 @@ $categories = $pdo->query("SELECT * FROM vehicle_categories WHERE status = 'acti
                         <div class="vehicle-card-image">
                              <img src="<?php echo $image ?: BASE_URL . 'assets/images/vehicles/default.jpg'; ?>" 
                                  alt="<?php echo htmlspecialchars($vehicle['name']); ?>"
-                                 onerror="this.src=BASE_URL . 'assets/images/vehicles/default.jpg'">
+                                  onerror="this.src='<?php echo BASE_URL; ?>assets/images/vehicles/default.jpg'">
                              <span class="vehicle-badge">
                                  <i class="fas fa-car"></i>
                                  <?php echo htmlspecialchars($vehicle['category_name']); ?>

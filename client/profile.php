@@ -100,7 +100,7 @@ include __DIR__ . '/../includes/header.php';
         <div class="profile-header">
             <img src="<?php echo $user['profile_image'] ? UPLOAD_URL . 'users/' . $user['profile_image'] : BASE_URL . '/assets/images/users/default.jpg'; ?>" 
                  alt="Profile" class="profile-avatar"
-                 onerror="this.src=BASE_URL . 'assets/images/users/default.jpg'">
+                  onerror="this.src='<?php echo BASE_URL; ?>assets/images/users/default.jpg'">
             <div class="profile-info">
                 <h2><?php echo htmlspecialchars($user['full_name']); ?></h2>
                 <p><?php echo htmlspecialchars($user['email']); ?></p>

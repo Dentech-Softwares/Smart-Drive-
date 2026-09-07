@@ -99,7 +99,7 @@ include __DIR__ . '/includes/navbar.php';
                         <div class="vehicle-card-image">
                             <img src="<?php echo $image ?: BASE_URL . 'assets/images/vehicles/default.jpg'; ?>" 
                                  alt="<?php echo htmlspecialchars($vehicle['name']); ?>"
-                                 onerror="this.src=BASE_URL . 'assets/images/vehicles/default.jpg'">
+                                 onerror="this.src='<?php echo BASE_URL; ?>assets/images/vehicles/default.jpg'">
                              <span class="vehicle-badge"><?php echo htmlspecialchars($vehicle['category_name']); ?></span>
                              <span class="status-badge <?php echo strtolower(str_replace(' ', '-', $vehicle['status'])); ?>">
                                  <?php echo htmlspecialchars($vehicle['status']); ?>

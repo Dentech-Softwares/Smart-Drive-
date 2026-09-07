@@ -27,7 +27,7 @@ $today = date('Y-m-d\TH:i');
                 <div class="vehicle-gallery-main">
                     <img id="mainImage" src="<?php echo ($vehicleImages[0]['image_path'] ? UPLOAD_URL . 'vehicles/' . $vehicleImages[0]['image_path'] : BASE_URL . 'assets/images/vehicles/default.jpg'); ?>" 
                          alt="<?php echo htmlspecialchars($vehicle['name']); ?>" 
-                         onerror="this.src=BASE_URL . 'assets/images/vehicles/default.jpg'">
+                          onerror="this.src='<?php echo BASE_URL; ?>assets/images/vehicles/default.jpg'">
                     <span class="vehicle-badge"><?php echo htmlspecialchars($vehicle['category_name']); ?></span>
                 </div>
                 
