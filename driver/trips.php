@@ -16,7 +16,7 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $perPage = 1000;
 $offset = ($page - 1) * $perPage;
 $sql = "SELECT b.*, u.full_name as client_name, u.phone as client_phone,
-               v.name as vehicle_name, v.brand, v.model, v.registration_number
+               CONCAT(v.brand, ' ', v.model) as vehicle_name, v.brand, v.model, v.registration_number
         FROM bookings b
         JOIN users u ON b.client_id = u.id
         JOIN vehicles v ON b.vehicle_id = v.id

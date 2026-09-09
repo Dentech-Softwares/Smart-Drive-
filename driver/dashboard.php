@@ -14,7 +14,7 @@ $assignedTrips = getCount('bookings', "driver_id = {$driver['id']} AND status = 
 $activeTrips = getCount('bookings', "driver_id = {$driver['id']} AND status = 'Active'");
 $completedTrips = getCount('bookings', "driver_id = {$driver['id']} AND status = 'Completed'");
 $stmt = $pdo->prepare("SELECT b.*, u.full_name as client_name, u.phone as client_phone,
-                       v.name as vehicle_name, v.brand, v.model, v.registration_number
+                       CONCAT(v.brand, ' ', v.model) as vehicle_name, v.brand, v.model, v.registration_number
                        FROM bookings b
                        JOIN users u ON b.client_id = u.id
                        JOIN vehicles v ON b.vehicle_id = v.id

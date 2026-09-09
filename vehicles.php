@@ -8,9 +8,9 @@ $transmissionFilter = isset($_GET['transmission']) ? sanitize($_GET['transmissio
 $fuelFilter = isset($_GET['fuel_type']) ? sanitize($_GET['fuel_type']) : '';
 $minPrice = isset($_GET['min_price']) ? (float)$_GET['min_price'] : 0;
 $maxPrice = isset($_GET['max_price']) ? (float)$_GET['max_price'] : 0;
-$sql = "SELECT v.*, c.name as category_name FROM vehicles v 
+$sql = "SELECT v.*, c.name as category_name, CONCAT(v.brand, ' ', v.model) as name FROM vehicles v 
         JOIN vehicle_categories c ON v.category_id = c.id 
-        WHERE v.status = 'Available'";
+        WHERE " . getVehicleListingVisibilityCondition('v');
 $params = [];
 if ($categoryFilter > 0) {
     $sql .= " AND v.category_id = ?";
@@ -83,7 +83,7 @@ $categories = $pdo->query("SELECT * FROM vehicle_categories WHERE status = 'acti
                 <i class="fas fa-th-large"></i> All
             </a>
             <?php foreach ($categories as $cat): 
-                $count = $pdo->prepare("SELECT COUNT(*) FROM vehicles WHERE category_id = ? AND status = 'Available'");
+                $count = $pdo->prepare("SELECT COUNT(*) FROM vehicles WHERE category_id = ? AND " . getVehicleListingVisibilityCondition(''));
                 $count->execute([$cat['id']]);
                 $catCount = $count->fetchColumn();
                 

@@ -13,7 +13,7 @@ $totalDrivers = getCount('drivers');
 $pendingPayments = getCount('payments', "status = 'Pending'");
 $revenue = getSum('payments', 'amount', "status = 'Verified'");
 $activeTrips = getCount('bookings', "status = 'Active'");
-$stmt = $pdo->query("SELECT b.*, u.full_name as client_name, v.name as vehicle_name, v.brand, v.model 
+$stmt = $pdo->query("SELECT b.*, u.full_name as client_name, CONCAT(v.brand, ' ', v.model) as vehicle_name, v.brand, v.model 
                      FROM bookings b 
                      JOIN users u ON b.client_id = u.id 
                      JOIN vehicles v ON b.vehicle_id = v.id 
@@ -21,6 +21,25 @@ $stmt = $pdo->query("SELECT b.*, u.full_name as client_name, v.name as vehicle_n
                      LIMIT 5");
 $recentBookings = $stmt->fetchAll();
 $unreadNotifications = getUnreadNotifications($user['id']);
+
+$trendStartDate = isset($_GET['start_date']) ? sanitize($_GET['start_date']) : (new DateTime('first day of previous month'))->format('Y-m-d');
+$trendEndDate = isset($_GET['end_date']) ? sanitize($_GET['end_date']) : date('Y-m-d');
+$trendGroup = (strtotime($trendEndDate) - strtotime($trendStartDate)) > 604800 ? '%b %d' : '%b %d';
+$trendFormat = (strtotime($trendEndDate) - strtotime($trendStartDate)) > 604800 ? "DATE_FORMAT(created_at, '%%b %Y')" : "DATE_FORMAT(created_at, '%%b %d')";
+
+$trendLabels = [];
+$trendValues = [];
+$trendStmt = $pdo->prepare("SELECT $trendFormat as period, COUNT(*) as count 
+                           FROM bookings 
+                           WHERE created_at BETWEEN ? AND ? 
+                           GROUP BY period 
+                           ORDER BY period");
+$trendStmt->execute([$trendStartDate . ' 00:00:00', $trendEndDate . ' 23:59:59']);
+$trendRows = $trendStmt->fetchAll();
+foreach ($trendRows as $row) {
+    $trendLabels[] = $row['period'];
+    $trendValues[] = (int)$row['count'];
+}
 $pageTitle = 'Dashboard - Smart Drive Car Hire';
 include __DIR__ . '/../includes/header.php';
 ?>
@@ -171,6 +190,23 @@ include __DIR__ . '/../includes/header.php';
             </div>
         </div>
         
+        <div class="chart-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h4 style="margin: 0;">Bookings Trend (Last 6 Months)</h4>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="date" id="trendStartDate" value="<?php echo $trendStartDate; ?>" style="padding: 5px 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    <input type="date" id="trendEndDate" value="<?php echo $trendEndDate; ?>" style="padding: 5px 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    <button onclick="filterTrend()" class="btn btn-sm btn-outline" style="padding: 5px 15px;">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                </div>
+            </div>
+            <canvas id="bookingTrendChart" height="200"
+                data-labels="<?php echo htmlspecialchars(implode(',', $trendLabels)); ?>"
+                data-values="<?php echo implode(',', $trendValues); ?>">
+            </canvas>
+        </div>
+        
         <div class="recent-activity">
             <div class="card-header">
                 <h4><i class="fas fa-history"></i> Recent Bookings</h4>
@@ -213,5 +249,4 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-</body>
-</html>
+<?php include __DIR__ . '/../includes/footer.php'; ?>

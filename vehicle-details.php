@@ -4,9 +4,9 @@ $vehicleId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if (!$vehicleId) {
     redirect('/vehicles.php');
 }
-$stmt = $pdo->prepare("SELECT v.*, c.name as category_name FROM vehicles v 
+$stmt = $pdo->prepare("SELECT v.*, c.name as category_name, CONCAT(v.brand, ' ', v.model) as name FROM vehicles v 
                         JOIN vehicle_categories c ON v.category_id = c.id 
-                        WHERE v.id = ? AND v.status = 'Available'");
+                        WHERE v.id = ? AND " . getVehicleListingVisibilityCondition('v'));
 $stmt->execute([$vehicleId]);
 $vehicle = $stmt->fetch();
 if (!$vehicle) {
@@ -15,10 +15,12 @@ if (!$vehicle) {
 $pageTitle = $vehicle['brand'] . ' ' . $vehicle['model'] . ' - Smart Drive Car Hire';
 include __DIR__ . '/includes/header.php';
 include __DIR__ . '/includes/navbar.php';
-$images = $pdo->prepare("SELECT * FROM vehicle_images WHERE vehicle_id = ? ORDER BY is_primary DESC");
+$images = $pdo->prepare("SELECT * FROM vehicle_images WHERE vehicle_id = ? ORDER BY id ASC");
 $images->execute([$vehicleId]);
 $vehicleImages = $images->fetchAll();
 $today = date('Y-m-d\TH:i');
+$maxDate = date('Y-m-d\TH:i', strtotime('+30 days'));
+$maxReturnDate = date('Y-m-d\TH:i', strtotime('+30 days'));
 ?>
 <section class="section">
     <div class="container">
@@ -45,7 +47,6 @@ $today = date('Y-m-d\TH:i');
                 
                 <div class="card vehicle-info-card">
                     <h2 class="vehicle-title"><?php echo htmlspecialchars($vehicle['brand'] . ' ' . $vehicle['model']); ?></h2>
-                    <p class="vehicle-subtitle"><?php echo htmlspecialchars($vehicle['name']); ?></p>
                     
                     <div class="divider"></div>
                     
@@ -101,11 +102,11 @@ $today = date('Y-m-d\TH:i');
                             </div>
                             <div class="form-group">
                                 <label>Pickup Date & Time</label>
-                                <input type="datetime-local" name="pickup_datetime" id="pickup_datetime" required min="<?php echo $today; ?>">
+                                <input type="datetime-local" name="pickup_datetime" id="pickup_datetime" required min="<?php echo $today; ?>" max="<?php echo $maxDate; ?>">
                             </div>
                             <div class="form-group">
                                 <label>Return Date & Time</label>
-                                <input type="datetime-local" name="return_datetime" id="return_datetime" required min="<?php echo $today; ?>">
+                                <input type="datetime-local" name="return_datetime" id="return_datetime" required min="<?php echo $today; ?>" max="<?php echo $maxReturnDate; ?>">
                             </div>
                             
                             <div class="form-group">

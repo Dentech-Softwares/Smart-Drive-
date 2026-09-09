@@ -46,7 +46,7 @@ include __DIR__ . '/includes/navbar.php';
         <div class="stats-grid">
             <div class="stat-card animate-fadeInUp stagger-1">
                 <div class="stat-icon"><i class="fas fa-car"></i></div>
-                <div class="stat-number counter" data-target="<?php echo getCount('vehicles', "status = 'Available'"); ?>">0</div>
+                <div class="stat-number counter" data-target="<?php echo getCount('vehicles', getVehicleListingVisibilityCondition('')); ?>">0</div>
                 <div class="stat-label">Available Vehicles</div>
             </div>
             <div class="stat-card animate-fadeInUp stagger-2">
@@ -78,10 +78,10 @@ include __DIR__ . '/includes/navbar.php';
         </div>
         
         <?php
-        $vehicles = $pdo->query("SELECT v.*, c.name as category_name FROM vehicles v 
-                                  JOIN vehicle_categories c ON v.category_id = c.id 
-                                  ORDER BY v.created_at DESC 
-                                  LIMIT 6")->fetchAll();
+$vehicles = $pdo->query("SELECT v.*, c.name as category_name, CONCAT(v.brand, ' ', v.model) as name FROM vehicles v 
+                          JOIN vehicle_categories c ON v.category_id = c.id 
+                          ORDER BY v.created_at DESC 
+                          LIMIT 6")->fetchAll();
         
         if (empty($vehicles)):
         ?>
@@ -107,7 +107,6 @@ include __DIR__ . '/includes/navbar.php';
                         </div>
                         <div class="vehicle-card-body">
                             <h3><?php echo htmlspecialchars($vehicle['brand'] . ' ' . $vehicle['model']); ?></h3>
-                            <div class="category"><?php echo htmlspecialchars($vehicle['name']); ?></div>
                             <div class="vehicle-features">
                                 <span class="vehicle-feature"><i class="fas fa-cog"></i> <?php echo $vehicle['transmission']; ?></span>
                                 <span class="vehicle-feature"><i class="fas fa-gas-pump"></i> <?php echo $vehicle['fuel_type']; ?></span>

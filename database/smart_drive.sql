@@ -41,7 +41,6 @@ CREATE TABLE vehicle_categories (
 CREATE TABLE vehicles (
     id INT AUTO_INCREMENT PRIMARY KEY,
     category_id INT NOT NULL,
-    name VARCHAR(100) NOT NULL,
     brand VARCHAR(100) NOT NULL,
     model VARCHAR(100) NOT NULL,
     registration_number VARCHAR(50) UNIQUE NOT NULL,

@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_vehicle'])) {
 }
 }
 $categories = $pdo->query("SELECT * FROM vehicle_categories WHERE status = 'active' ORDER BY name")->fetchAll();
-$brands = ['Toyota', 'Nissan', 'Honda', 'Mazda', 'Mitsubishi', 'Subaru', 'Suzuki', 'Hyundai', 'Kia', 'Volkswagen', 'Audi', 'BMW', 'Mercedes-Benz', 'Lexus', 'Land Rover', 'Jeep', 'Ford', 'Chevrolet', 'Peugeot', 'Renault', 'Citroen', 'Fiat', 'Skoda', 'Volvo', 'Porsche', 'Jaguar', 'Alfa Romeo', 'Maserati', 'Genesis', 'BYD', 'Great Wall', 'Haval', 'Tata', 'Mahindra', 'Isuzu', 'MAN', 'Scania', 'Iveco', 'Dodge', 'Chrysler', 'Buick', 'Cadillac', 'Lincoln', 'Tesla', 'Rivian', 'Lucid', 'Polestar', 'Smart', 'Mini', 'Bentley', 'Rolls-Royce', 'Ferrari', 'Lamborghini', 'Aston Martin', 'McLaren', 'Maybach', 'Pagani', 'Bugatti'];
+$brands = ['Toyota', 'Nissan', 'Honda', 'Mazda', 'Mitsubishi', 'Subaru', 'Suzuki', 'Hyundai', 'Kia', 'Volkswagen', 'Audi', 'BMW', 'Mercedes-Benz', 'Lexus', 'Land Rover', 'Jeep', 'Ford', 'Chevrolet', 'Peugeot', 'Renault', 'Range Rover', 'Fiat', 'Volvo', 'Porsche', 'Jaguar', 'Alfa Romeo', 'Maserati', 'Genesis', 'BYD', 'Great Wall', 'Haval', 'Tata', 'Mahindra', 'Isuzu', 'MAN', 'Scania', 'Iveco', 'Dodge', 'Chrysler', 'Buick', 'Cadillac', 'Lincoln', 'Tesla', 'Rivian', 'Lucid', 'Polestar', 'Smart', 'Mini', 'Bentley', 'Rolls-Royce', 'Ferrari', 'Lamborghini', 'Aston Martin', 'McLaren', 'Maybach', 'Pagani', 'Bugatti'];
 $pageTitle = 'Add Vehicle - Smart Drive Car Hire';
 include __DIR__ . '/../../includes/header.php';
 ?>

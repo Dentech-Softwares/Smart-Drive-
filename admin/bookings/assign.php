@@ -8,7 +8,7 @@ $bookingId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if (!$bookingId) {
     redirect('/admin/bookings/index.php');
 }
-$stmt = $pdo->prepare("SELECT b.*, v.name as vehicle_name, v.brand, v.model FROM bookings b JOIN vehicles v ON b.vehicle_id = v.id WHERE b.id = ?");
+$stmt = $pdo->prepare("SELECT b.*, CONCAT(v.brand, ' ', v.model) as vehicle_name, v.brand, v.model FROM bookings b JOIN vehicles v ON b.vehicle_id = v.id WHERE b.id = ?");
 $stmt->execute([$bookingId]);
 $booking = $stmt->fetch();
 if (!$booking) {
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $overlapCheck = $pdo->prepare("SELECT COUNT(*) as count FROM bookings 
                                            WHERE driver_id = ? AND status NOT IN ('Cancelled', 'Completed') 
-                                           AND pickup_datetime < ? AND return_datetime > ? AND id != ?");
+                                           AND pickup_datetime < ? AND DATE_ADD(return_datetime, INTERVAL 2 HOUR) > ? AND id != ?");
             $overlapCheck->execute([$driverId, $booking['return_datetime'], $booking['pickup_datetime'], $bookingId]);
             
             if ($overlapCheck->fetch()['count'] > 0) {

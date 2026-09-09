@@ -14,7 +14,7 @@ $perPage = 1000;
 $offset = ($page - 1) * $perPage;
 
 $sql = "SELECT p.*, u.full_name as client_name, b.id as booking_id, b.booking_reference, b.total_amount,
-               v.name as vehicle_name, v.brand, v.model
+               CONCAT(v.brand, ' ', v.model) as vehicle_name, v.brand, v.model
         FROM payments p
         JOIN users u ON p.client_id = u.id
         JOIN bookings b ON p.booking_id = b.id

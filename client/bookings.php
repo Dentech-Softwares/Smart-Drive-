@@ -6,7 +6,7 @@ if (!isLoggedIn() || $_SESSION['role'] !== 'client') {
 $user = getCurrentUser();
 $clientId = $_SESSION['user_id'];
 $statusFilter = isset($_GET['status']) ? sanitize($_GET['status']) : '';
-$sql = "SELECT b.*, v.name as vehicle_name, v.brand, v.model, v.registration_number, 
+$sql = "SELECT b.*, CONCAT(v.brand, ' ', v.model) as vehicle_name, v.brand, v.model, v.registration_number, 
                d.full_name as driver_name, vi.image_path as vehicle_image
         FROM bookings b
         JOIN vehicles v ON b.vehicle_id = v.id

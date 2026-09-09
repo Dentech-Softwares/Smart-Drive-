@@ -14,7 +14,7 @@ $perPage = 1000;
 $offset = ($page - 1) * $perPage;
 
 $sql = "SELECT b.*, u.full_name as client_name, u.email as client_email, 
-               v.name as vehicle_name, v.brand, v.model, v.registration_number,
+               CONCAT(v.brand, ' ', v.model) as vehicle_name, v.brand, v.model, v.registration_number,
                d.full_name as driver_name
         FROM bookings b
         JOIN users u ON b.client_id = u.id
@@ -142,7 +142,7 @@ include __DIR__ . '/../../includes/header.php';
                                 <td><?php echo getBookingStatusLabel($booking['status']); ?></td>
                                 <td>
                                     <a href="<?php echo BASE_URL; ?>admin/bookings/details.php?id=<?php echo $booking['id']; ?>" class="btn btn-sm btn-outline">View</a>
-                                    <?php if (in_array($booking['status'], ['Confirmed', 'Approved', 'Payment Submitted']) && !$booking['driver_id']): ?>
+                                    <?php if (in_array($booking['status'], ['Confirmed', 'Approved', 'Payment Submitted']) && !$booking['driver_id'] && $booking['with_driver']): ?>
                                         <a href="<?php echo BASE_URL; ?>admin/bookings/assign.php?id=<?php echo $booking['id']; ?>" class="btn btn-sm btn-primary">
                                             <i class="fas fa-user-plus"></i> Assign
                                         </a>

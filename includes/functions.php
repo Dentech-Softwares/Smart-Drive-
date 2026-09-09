@@ -110,12 +110,35 @@ function calculateRentalDays($pickup, $return) {
     $interval = $start->diff($end);
     return max(1, (int)$interval->format('%a'));
 }
+function isVehicleVisibleInListings($vehicleId) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT status FROM vehicles WHERE id = ?");
+    $stmt->execute([$vehicleId]);
+    $vehicle = $stmt->fetch();
+    if (!$vehicle || $vehicle['status'] === 'Available') {
+        return true;
+    }
+    if ($vehicle['status'] === 'Booked') {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM bookings 
+                               WHERE vehicle_id = ? 
+                               AND status IN ('Pending', 'Approved', 'Payment Submitted', 'Confirmed') 
+                               AND pickup_datetime > DATE_ADD(NOW(), INTERVAL 2 HOUR)");
+        $stmt->execute([$vehicleId]);
+        return $stmt->fetchColumn() > 0;
+    }
+    return false;
+}
+function getVehicleListingVisibilityCondition($tableAlias = 'v') {
+    $idRef = $tableAlias ? $tableAlias . '.id' : 'vehicles.id';
+    $statusRef = $tableAlias ? $tableAlias . '.status' : 'vehicles.status';
+    return "({$statusRef} = 'Available' OR ({$statusRef} = 'Booked' AND EXISTS (SELECT 1 FROM bookings b WHERE b.vehicle_id = {$idRef} AND b.status IN ('Pending', 'Approved', 'Payment Submitted', 'Confirmed') AND b.pickup_datetime > DATE_ADD(NOW(), INTERVAL 2 HOUR))))";
+}
 function checkVehicleAvailability($vehicleId, $pickup, $return, $excludeBookingId = null) {
     global $pdo;
     $sql = "SELECT COUNT(*) as count FROM bookings 
             WHERE vehicle_id = ? 
             AND status NOT IN ('Cancelled', 'Completed')
-            AND (pickup_datetime < ? AND return_datetime > ?)";
+            AND (pickup_datetime < ? AND DATE_ADD(return_datetime, INTERVAL 2 HOUR) > ?)";
     
     $params = [$vehicleId, $return, $pickup];
     
@@ -175,7 +198,7 @@ function getVehicleImage($vehicleId, $isPrimary = true) {
 }
 function getVehiclePrimaryImage($vehicleId) {
     global $pdo;
-    $stmt = $pdo->prepare("SELECT image_path FROM vehicle_images WHERE vehicle_id = ? AND is_primary = 1 LIMIT 1");
+    $stmt = $pdo->prepare("SELECT image_path FROM vehicle_images WHERE vehicle_id = ? ORDER BY id ASC LIMIT 1");
     $stmt->execute([$vehicleId]);
     $result = $stmt->fetch();
     return $result ? UPLOAD_URL . 'vehicles/' . $result['image_path'] : null;
@@ -247,8 +270,17 @@ function formatDateTime($date) {
 function timeAgo($datetime) {
     $time = time() - strtotime($datetime);
     if ($time < 60) return 'Just now';
-    if ($time < 3600) return floor($time / 60) . ' min ago';
-    if ($time < 86400) return floor($time / 3600) . ' hr ago';
-    if ($time < 604800) return floor($time / 86400) . ' days ago';
+    if ($time < 3600) {
+        $mins = floor($time / 60);
+        return $mins . ' min' . ($mins != 1 ? 's' : '') . ' ago';
+    }
+    if ($time < 86400) {
+        $hrs = floor($time / 3600);
+        return $hrs . ' hr' . ($hrs != 1 ? 's' : '') . ' ago';
+    }
+    if ($time < 604800) {
+        $days = floor($time / 86400);
+        return $days . ' day' . ($days != 1 ? 's' : '') . ' ago';
+    }
     return date('M d, Y', strtotime($datetime));
 }

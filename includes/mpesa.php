@@ -15,11 +15,21 @@ function getMpesaAccessToken() {
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Basic ' . base64_encode($consumerKey . ':' . $consumerSecret)]);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
     curl_close($ch);
     
     $result = json_decode($response, true);
-    return $result['access_token'] ?? null;
+    
+    if ($httpCode === 200 && isset($result['access_token'])) {
+        return $result['access_token'];
+    }
+    
+    return null;
 }
 
 function initiateMpesaSTK($phoneNumber, $amount, $bookingReference, $accountReference = null) {
@@ -52,8 +62,8 @@ function initiateMpesaSTK($phoneNumber, $amount, $bookingReference, $accountRefe
         "PartyB" => $shortcode,
         "PhoneNumber" => $phoneNumber,
         "CallBackURL" => $callbackUrl,
-        "AccountReference" => $accountReference ?: $bookingReference,
-        "TransactionDesc" => "Smart Drive Car Hire - " . $bookingReference
+        "AccountReference" => "Hayven CarHire",
+        "TransactionDesc" => "Hayven CarHire - " . $bookingReference
     ];
     
     $url = $environment === 'production'
@@ -68,9 +78,13 @@ function initiateMpesaSTK($phoneNumber, $amount, $bookingReference, $accountRefe
         "Authorization: Bearer " . $accessToken
     ]);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
     curl_close($ch);
     
     $result = json_decode($response, true);
@@ -85,11 +99,11 @@ function initiateMpesaSTK($phoneNumber, $amount, $bookingReference, $accountRefe
     }
     
     $errorMessage = is_array($result) ? ($result['errorMessage'] ?? $result['ResponseDescription'] ?? 'STK Push failed') : 'STK Push failed';
-    $curlError = curl_error($ch);
     
     return [
         'success' => false,
         'message' => $curlError ? $curlError : $errorMessage,
+        'http_code' => $httpCode,
         'response' => $result
     ];
 }

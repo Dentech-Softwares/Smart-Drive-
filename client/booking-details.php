@@ -9,7 +9,7 @@ $bookingId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if (!$bookingId) {
     redirect('/client/bookings.php');
 }
-$stmt = $pdo->prepare("SELECT b.*, v.name as vehicle_name, v.brand, v.model, v.registration_number, 
+$stmt = $pdo->prepare("SELECT b.*, CONCAT(v.brand, ' ', v.model) as vehicle_name, v.brand, v.model, v.registration_number, 
                        v.transmission, v.fuel_type, v.seating_capacity, v.price_per_day,
                        d.full_name as driver_name, d.phone as driver_phone,
                        vi.image_path as vehicle_image
@@ -171,15 +171,29 @@ include __DIR__ . '/../includes/header.php';
                     <?php endif; ?>
                     
                     <?php if ($booking['status'] === 'Confirmed'): ?>
-                        <button onclick="startTrip(<?php echo $booking['id']; ?>)" class="btn btn-primary" style="margin-left: 10px;">
-                            <i class="fas fa-play-circle"></i> Start Trip
-                        </button>
+                        <?php $pickupReached = strtotime($booking['pickup_datetime']) <= time(); ?>
+                        <?php if ($pickupReached): ?>
+                            <button onclick="startTrip(<?php echo $booking['id']; ?>)" class="btn btn-primary" style="margin-left: 10px;">
+                                <i class="fas fa-play-circle"></i> Start Trip
+                            </button>
+                        <?php else: ?>
+                            <button class="btn btn-secondary" style="margin-left: 10px;" disabled>
+                                <i class="fas fa-clock"></i> Available from <?php echo date('M d, Y h:ia', strtotime($booking['pickup_datetime'])); ?>
+                            </button>
+                        <?php endif; ?>
                     <?php endif; ?>
                     
                     <?php if ($booking['status'] === 'Active'): ?>
-                        <button onclick="endTrip(<?php echo $booking['id']; ?>)" class="btn btn-danger" style="margin-left: 10px;">
-                            <i class="fas fa-stop-circle"></i> End Trip
-                        </button>
+                        <?php $returnReached = strtotime($booking['return_datetime']) <= time(); ?>
+                        <?php if ($returnReached): ?>
+                            <button onclick="endTrip(<?php echo $booking['id']; ?>)" class="btn btn-danger" style="margin-left: 10px;">
+                                <i class="fas fa-stop-circle"></i> End Trip
+                            </button>
+                        <?php else: ?>
+                            <button class="btn btn-secondary" style="margin-left: 10px;" disabled>
+                                <i class="fas fa-clock"></i> End available from <?php echo date('M d, Y h:ia', strtotime($booking['return_datetime'])); ?>
+                            </button>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
             </div>
@@ -200,90 +214,85 @@ include __DIR__ . '/../includes/header.php';
 <script>
 const BASE_URL = '<?php echo BASE_URL; ?>';
 function endTrip(bookingId) {
-    Swal.fire({
-        title: 'End Trip?',
-        text: 'Are you sure you want to end this trip? Late returns will incur a penalty of KSh 200 per hour.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#C1121F',
-        confirmButtonText: 'Yes, end trip!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(BASE_URL + 'api/booking-actions.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'end_trip', booking_id: bookingId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({ 
-                        icon: 'success', 
-                        title: 'Trip Ended!', 
-                        text: data.penalty > 0 ? 'Trip ended with penalty: KSh ' + data.penalty : 'Trip ended successfully.',
-                        confirmButtonColor: '#C1121F' 
-                    }).then(() => location.reload());
-                } else {
-                    Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#C1121F' });
-                }
-            });
+    if (!confirm('Are you sure you want to end this trip? Late returns will incur a penalty of KSh 200 per hour.')) return;
+    
+    fetch(BASE_URL + 'api/booking-actions.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'end_trip', booking_id: bookingId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (data.penalty > 0) {
+                alert('Trip ended with penalty: KSh ' + data.penalty);
+            } else {
+                alert('Trip ended successfully!');
+            }
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
         }
+    }).catch(err => {
+        alert('Failed to end trip: ' + err.message);
     });
 }
 function startTrip(bookingId) {
-    Swal.fire({
-        title: 'Start Trip?',
-        text: 'Are you sure you want to start this trip?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#C1121F',
-        confirmButtonText: 'Yes, start trip!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(BASE_URL + 'api/booking-actions.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'start_trip', booking_id: bookingId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({ icon: 'success', title: 'Trip Started!', text: 'Your trip has started. Enjoy!', confirmButtonColor: '#C1121F' })
-                        .then(() => location.reload());
-                } else {
-                    Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#C1121F' });
-                }
-            });
+    if (!confirm('Are you sure you want to start this trip?')) return;
+    
+    fetch(BASE_URL + 'api/booking-actions.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'start_trip', booking_id: bookingId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Trip Started! Your trip has started. Enjoy!');
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
         }
+    }).catch(err => {
+        alert('Failed to start trip: ' + err.message);
     });
 }
 function cancelBooking(bookingId) {
-    Swal.fire({
-        title: 'Cancel Booking?',
-        text: 'Are you sure you want to cancel this booking? This action cannot be undone.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#C1121F',
-        confirmButtonText: 'Yes, cancel!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(BASE_URL + 'api/booking-actions.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'cancel_booking', booking_id: bookingId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({ icon: 'success', title: 'Cancelled!', text: 'Booking has been cancelled.', confirmButtonColor: '#C1121F' })
-                        .then(() => location.reload());
-                } else {
-                    Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#C1121F' });
-                }
-            });
+    if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) return;
+    
+    fetch(BASE_URL + 'api/booking-actions.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'cancel_booking', booking_id: bookingId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Booking has been cancelled.');
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
         }
+    }).catch(err => {
+        alert('Failed to cancel booking: ' + err.message);
     });
 }
+
+window.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.querySelector('.sidebar');
+    const toggle = document.getElementById('sidebarToggle');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (toggle) {
+        toggle.addEventListener('click', function() {
+            if (sidebar) sidebar.classList.add('active');
+            if (overlay) overlay.classList.add('active');
+        });
+    }
+    if (overlay) {
+        overlay.addEventListener('click', function() {
+            if (sidebar) sidebar.classList.remove('active');
+            if (overlay) overlay.classList.remove('active');
+        });
+    }
+});
 </script>
-</body>
-</html>

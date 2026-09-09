@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_vehicle'])) {
 }
 $categories = $pdo->query("SELECT * FROM vehicle_categories WHERE status = 'active' ORDER BY name")->fetchAll();
 $brands = ['Toyota', 'Nissan', 'Honda', 'Mazda', 'Mitsubishi', 'Subaru', 'Suzuki', 'Hyundai', 'Kia', 'Volkswagen', 'Audi', 'BMW', 'Mercedes-Benz', 'Lexus', 'Land Rover', 'Jeep', 'Ford', 'Chevrolet', 'Peugeot', 'Renault', 'Citroen', 'Fiat', 'Skoda', 'Volvo', 'Porsche', 'Jaguar', 'Alfa Romeo', 'Maserati', 'Genesis', 'BYD', 'Great Wall', 'Haval', 'Tata', 'Mahindra', 'Isuzu', 'MAN', 'Scania', 'Iveco', 'Dodge', 'Chrysler', 'Buick', 'Cadillac', 'Lincoln', 'Tesla', 'Rivian', 'Lucid', 'Polestar', 'Smart', 'Mini', 'Bentley', 'Rolls-Royce', 'Ferrari', 'Lamborghini', 'Aston Martin', 'McLaren', 'Maybach', 'Pagani', 'Bugatti'];
-$images = $pdo->prepare("SELECT * FROM vehicle_images WHERE vehicle_id = ?");
+$images = $pdo->prepare("SELECT * FROM vehicle_images WHERE vehicle_id = ? ORDER BY id ASC");
 $images->execute([$vehicleId]);
 $vehicleImages = $images->fetchAll();
 $pageTitle = 'Edit Vehicle - Smart Drive Car Hire';
@@ -219,6 +219,7 @@ include __DIR__ . '/../../includes/header.php';
                                      class="img-thumb"
                                      onerror="this.style.display='none'">
                                 <form method="POST" action="<?php echo BASE_URL; ?>admin/vehicles/delete-image.php" class="delete-image-form">
+                                    <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
                                     <input type="hidden" name="image_id" value="<?php echo $img['id']; ?>">
                                     <input type="hidden" name="vehicle_id" value="<?php echo $vehicleId; ?>">
                                     <button type="submit" class="btn btn-sm btn-danger btn-delete-image" 

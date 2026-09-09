@@ -14,7 +14,7 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $perPage = 1000;
 $offset = ($page - 1) * $perPage;
 
-$sql = "SELECT v.*, c.name as category_name FROM vehicles v 
+$sql = "SELECT v.*, c.name as category_name, CONCAT(v.brand, ' ', v.model) as name FROM vehicles v 
         JOIN vehicle_categories c ON v.category_id = c.id 
         WHERE 1=1";
 $params = [];
@@ -22,10 +22,9 @@ $countSql = "SELECT COUNT(*) FROM vehicles v JOIN vehicle_categories c ON v.cate
 $countParams = [];
 
 if ($search) {
-    $sql .= " AND (v.name LIKE ? OR v.brand LIKE ? OR v.model LIKE ? OR v.registration_number LIKE ?)";
-    $countSql .= " AND (v.name LIKE ? OR v.brand LIKE ? OR v.model LIKE ? OR v.registration_number LIKE ?)";
+    $sql .= " AND (v.brand LIKE ? OR v.model LIKE ? OR v.registration_number LIKE ?)";
+    $countSql .= " AND (v.brand LIKE ? OR v.model LIKE ? OR v.registration_number LIKE ?)";
     $searchParam = "%$search%";
-    $params[] = $searchParam;
     $params[] = $searchParam;
     $params[] = $searchParam;
     $params[] = $searchParam;
@@ -151,7 +150,6 @@ include __DIR__ . '/../../includes/header.php';
                             <tr>
                             <td><?php echo $counter++; ?></td>
                             <td><strong><?php echo htmlspecialchars($vehicle['brand'] . ' ' . $vehicle['model']); ?></strong>
-                                    <small><?php echo htmlspecialchars($vehicle['name']); ?></small>
                                 </td>
                                 <td><?php echo htmlspecialchars($vehicle['category_name']); ?></td>
                                 <td><?php echo htmlspecialchars($vehicle['registration_number']); ?></td>

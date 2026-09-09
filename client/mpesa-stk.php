@@ -61,14 +61,22 @@ if ($stmt->execute([$bookingId, $clientId, $amount, $booking['booking_reference'
         
         echo json_encode([
             'success' => true,
-            'message' => 'STK Push sent to ' . $phoneNumber . '. Please complete the payment on your phone.',
+            'message' => 'STK Push sent. Complete the payment on your phone to Hayven CarHire.',
             'checkout_request_id' => $result['checkout_request_id']
         ]);
     } else {
         $pdo->prepare("UPDATE payments SET status = 'Rejected', rejection_reason = ? WHERE id = ?")
            ->execute([$result['message'], $paymentId]);
         
-        echo json_encode(['success' => false, 'message' => $result['message']]);
+        $debugMessage = $result['message'];
+        if (isset($result['http_code'])) {
+            $debugMessage .= ' (HTTP ' . $result['http_code'] . ')';
+        }
+        if (isset($result['response']) && is_array($result['response'])) {
+            $debugMessage .= ' Response: ' . json_encode($result['response']);
+        }
+        
+        echo json_encode(['success' => false, 'message' => $debugMessage]);
     }
 } else {
     echo json_encode(['success' => false, 'message' => 'Failed to initiate payment']);

@@ -105,9 +105,68 @@ function initCharts() {
             }
         });
     }
+    
+    // Booking Trend Chart
+    const trendCtx = document.getElementById('bookingTrendChart');
+    if (trendCtx) {
+        new Chart(trendCtx, {
+            type: 'bar',
+            data: {
+                labels: trendCtx.dataset.labels ? trendCtx.dataset.labels.split(',') : [],
+                datasets: [{
+                    label: 'Bookings',
+                    data: trendCtx.dataset.values ? trendCtx.dataset.values.split(',').map(v => v.trim() !== '' ? Number(v) : 0) : [],
+                    backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#fff',
+                        titleColor: '#333',
+                        bodyColor: '#666',
+                        borderColor: '#ddd',
+                        borderWidth: 1,
+                        padding: 10,
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { 
+                            stepSize: 1,
+                            color: '#6c757d'
+                        },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
 }
 
 document.addEventListener('DOMContentLoaded', initCharts);
+
+function filterTrend() {
+    const start = document.getElementById('trendStartDate').value;
+    const end = document.getElementById('trendEndDate').value;
+    if (start && end) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('start_date', start);
+        url.searchParams.set('end_date', end);
+        window.location.href = url.toString();
+    }
+}
 
 // Sidebar toggle for mobile
 (function() {

@@ -9,7 +9,7 @@ if (!$bookingId) {
     redirect('/admin/bookings/index.php');
 }
 $stmt = $pdo->prepare("SELECT b.*, u.full_name as client_name, u.email as client_email, u.phone as client_phone,
-                       v.name as vehicle_name, v.brand, v.model, v.registration_number, v.transmission, v.fuel_type,
+                       CONCAT(v.brand, ' ', v.model) as vehicle_name, v.brand, v.model, v.registration_number, v.transmission, v.fuel_type,
                        d.full_name as driver_name, d.phone as driver_phone
                        FROM bookings b
                        JOIN users u ON b.client_id = u.id
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = 'Booking updated successfully!';
             
             $stmt = $pdo->prepare("SELECT b.*, u.full_name as client_name, u.email as client_email, u.phone as client_phone,
-                                   v.name as vehicle_name, v.brand, v.model, v.registration_number, v.transmission, v.fuel_type,
+                                   CONCAT(v.brand, ' ', v.model) as vehicle_name, v.brand, v.model, v.registration_number, v.transmission, v.fuel_type,
                                    d.full_name as driver_name, d.phone as driver_phone
                                    FROM bookings b
                                    JOIN users u ON b.client_id = u.id
@@ -230,7 +230,7 @@ include __DIR__ . '/../../includes/header.php';
             </div>
         <?php endif; ?>
         
-        <?php if (in_array($booking['status'], ['Confirmed', 'Approved', 'Payment Submitted']) && !$booking['driver_id']): ?>
+        <?php if (in_array($booking['status'], ['Confirmed', 'Approved', 'Payment Submitted']) && !$booking['driver_id'] && $booking['with_driver']): ?>
             <div class="card">
                 <div class="card-header">
                     <h3><i class="fas fa-user-plus"></i> Assign Driver</h3>
