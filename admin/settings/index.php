@@ -10,8 +10,7 @@ $message = '';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $settingsData = $_POST['settings'] ?? [];
-    foreach ($settingsData as $key => $value) {
+    foreach ($_POST['settings'] as $key => $value) {
         $stmt = $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?) 
                                ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
         $stmt->execute([$key, $value]);
@@ -35,7 +34,7 @@ include __DIR__ . '/../../includes/header.php';
     <aside class="sidebar">
         <div class="sidebar-header">
             <h3>SMART <span>DRIVE</span></h3>
-            </div>
+        </div>
         <ul class="sidebar-nav">
             <li><a href="<?php echo BASE_URL; ?>admin/dashboard.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
             <li><a href="<?php echo BASE_URL; ?>admin/vehicles/index.php"><i class="fas fa-car"></i> Vehicles</a></li>
@@ -134,10 +133,6 @@ include __DIR__ . '/../../includes/header.php';
                             <option value="sandbox" <?php echo ($settings['mpesa_environment'] ?? 'sandbox') === 'sandbox' ? 'selected' : ''; ?>>Sandbox</option>
                             <option value="production" <?php echo ($settings['mpesa_environment'] ?? '') === 'production' ? 'selected' : ''; ?>>Production</option>
                         </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Callback URL</label>
-                        <input type="text" name="settings[mpesa_callback_url]" value="<?php echo htmlspecialchars($settings['mpesa_callback_url'] ?? ''); ?>" placeholder="https://yourdomain.com/client/mpesa-callback.php">
                     </div>
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Save M-Pesa Settings

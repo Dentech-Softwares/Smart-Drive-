@@ -10,6 +10,27 @@
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/animations.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/responsive.css">
     <?php if (isset($extraCSS)) echo $extraCSS; ?>
+    <script>
+    (function() {
+        const IDLE_TIMEOUT = 5 * 60 * 1000;
+        let idleTimer;
+        const logoutUrl = '<?php echo BASE_URL; ?>logout.php';
+        
+        function resetIdleTimer() {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(function() {
+                window.location.href = logoutUrl;
+            }, IDLE_TIMEOUT);
+        }
+        
+        const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+        events.forEach(function(evt) {
+            document.addEventListener(evt, resetIdleTimer, true);
+        });
+        
+        resetIdleTimer();
+    })();
+    </script>
 </head>
 <body>
 <?php

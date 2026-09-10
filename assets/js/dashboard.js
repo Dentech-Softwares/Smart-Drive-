@@ -109,46 +109,100 @@ function initCharts() {
     // Booking Trend Chart
     const trendCtx = document.getElementById('bookingTrendChart');
     if (trendCtx) {
+        const trendLabels = trendCtx.dataset.labels ? trendCtx.dataset.labels.split(',') : [];
+        const trendValues = trendCtx.dataset.values ? trendCtx.dataset.values.split(',').map(v => v.trim() !== '' ? Number(v) : 0) : [];
+        const maxVal = Math.max(...trendValues, 1);
+        const yMax = Math.ceil(maxVal * 1.25) || 5;
+        
         new Chart(trendCtx, {
-            type: 'bar',
+            type: 'line',
             data: {
-                labels: trendCtx.dataset.labels ? trendCtx.dataset.labels.split(',') : [],
+                labels: trendLabels,
                 datasets: [{
                     label: 'Bookings',
-                    data: trendCtx.dataset.values ? trendCtx.dataset.values.split(',').map(v => v.trim() !== '' ? Number(v) : 0) : [],
-                    backgroundColor: 'rgba(13, 110, 253, 0.7)',
-                    borderColor: 'rgba(13, 110, 253, 1)',
-                    borderWidth: 1,
-                    borderRadius: 6
+                    data: trendValues,
+                    backgroundColor: function(context) {
+                        const chart = context.chart;
+                        const ctx = chart.ctx;
+                        const gradient = ctx.createLinearGradient(0, chart.chartArea.top, 0, chart.chartArea.bottom);
+                        gradient.addColorStop(0, 'rgba(13, 110, 253, 0.25)');
+                        gradient.addColorStop(0.5, 'rgba(13, 110, 253, 0.08)');
+                        gradient.addColorStop(1, 'rgba(13, 110, 253, 0.0)');
+                        return gradient;
+                    },
+                    borderColor: '#0d6efd',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#0d6efd',
+                    pointBorderWidth: 3,
+                    pointRadius: 7,
+                    pointHoverRadius: 10,
+                    pointHoverBorderWidth: 4,
+                    pointHoverBackgroundColor: '#ffffff',
+                    tension: 0.35,
+                    fill: true
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
-                        backgroundColor: '#fff',
-                        titleColor: '#333',
-                        bodyColor: '#666',
-                        borderColor: '#ddd',
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        titleColor: '#f1f5f9',
+                        bodyColor: '#ffffff',
+                        borderColor: 'rgba(13, 110, 253, 0.5)',
                         borderWidth: 1,
-                        padding: 10,
-                        cornerRadius: 8
+                        padding: 14,
+                        cornerRadius: 10,
+                        displayColors: false,
+                        titleFont: { size: 13, weight: '600' },
+                        bodyFont: { size: 15, weight: '700' },
+                        callbacks: {
+                            title: function(context) {
+                                return context[0].label;
+                            },
+                            label: function(context) {
+                                const val = context.parsed.y;
+                                return val + ' booking' + (val !== 1 ? 's' : '');
+                            }
+                        }
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { 
+                        max: yMax,
+                        ticks: {
                             stepSize: 1,
-                            color: '#6c757d'
+                            color: '#64748b',
+                            font: { size: 12, weight: '500' },
+                            padding: 8
                         },
-                        grid: { color: 'rgba(0,0,0,0.05)' }
+                        grid: {
+                            color: 'rgba(0,0,0,0.04)',
+                            drawBorder: false
+                        },
+                        border: { display: false }
                     },
                     x: {
-                        grid: { display: false }
+                        grid: { display: false },
+                        ticks: {
+                            color: '#64748b',
+                            font: { size: 12, weight: '500' },
+                            padding: 8
+                        },
+                        border: { display: false }
                     }
+                },
+                animation: {
+                    duration: 1800,
+                    easing: 'easeInOutQuart'
                 }
             }
         });

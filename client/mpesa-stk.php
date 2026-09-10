@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $bookingId = isset($_POST['booking_id']) ? (int)$_POST['booking_id'] : 0;
 $amount = isset($_POST['amount']) ? (float)$_POST['amount'] : 0;
 $phoneNumber = sanitize($_POST['phone_number'] ?? '');
+$payPenalty = isset($_POST['pay_penalty']);
 
 if (!$bookingId || $amount <= 0 || empty($phoneNumber)) {
     echo json_encode(['success' => false, 'message' => 'Missing required fields']);
@@ -34,7 +35,7 @@ if (!$booking) {
     exit();
 }
 
-if ($booking['status'] !== 'Approved') {
+if (!$payPenalty && $booking['status'] !== 'Approved') {
     echo json_encode(['success' => false, 'message' => 'Payment can only be made for approved bookings']);
     exit();
 }

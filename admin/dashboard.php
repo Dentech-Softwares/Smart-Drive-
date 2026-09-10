@@ -190,21 +190,23 @@ include __DIR__ . '/../includes/header.php';
             </div>
         </div>
         
-        <div class="chart-container">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h4 style="margin: 0;">Bookings Trend (Last 6 Months)</h4>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <input type="date" id="trendStartDate" value="<?php echo $trendStartDate; ?>" style="padding: 5px 10px; border-radius: 4px; border: 1px solid #ddd;">
-                    <input type="date" id="trendEndDate" value="<?php echo $trendEndDate; ?>" style="padding: 5px 10px; border-radius: 4px; border: 1px solid #ddd;">
-                    <button onclick="filterTrend()" class="btn btn-sm btn-outline" style="padding: 5px 15px;">
+        <div class="chart-container trend-section">
+            <div class="trend-header">
+                <h4><i class="fas fa-chart-line"></i> Bookings Trend (Last 6 Months)</h4>
+                <div class="trend-filters">
+                    <input type="date" id="trendStartDate" value="<?php echo $trendStartDate; ?>">
+                    <input type="date" id="trendEndDate" value="<?php echo $trendEndDate; ?>">
+                    <button onclick="filterTrend()" class="btn btn-sm btn-primary">
                         <i class="fas fa-filter"></i> Filter
                     </button>
                 </div>
             </div>
-            <canvas id="bookingTrendChart" height="200"
-                data-labels="<?php echo htmlspecialchars(implode(',', $trendLabels)); ?>"
-                data-values="<?php echo implode(',', $trendValues); ?>">
-            </canvas>
+            <div class="trend-chart-wrapper">
+                <canvas id="bookingTrendChart"
+                    data-labels="<?php echo htmlspecialchars(implode(',', $trendLabels)); ?>"
+                    data-values="<?php echo implode(',', $trendValues); ?>">
+                </canvas>
+            </div>
         </div>
         
         <div class="recent-activity">
@@ -249,4 +251,4 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php include __DIR__ . '/../includes/scripts.php'; ?>

@@ -12,11 +12,10 @@ if (!$bookingId) {
 $stmt = $pdo->prepare("SELECT b.*, CONCAT(v.brand, ' ', v.model) as vehicle_name, v.brand, v.model, v.registration_number, 
                        v.transmission, v.fuel_type, v.seating_capacity, v.price_per_day,
                        d.full_name as driver_name, d.phone as driver_phone,
-                       vi.image_path as vehicle_image
+                       (SELECT image_path FROM vehicle_images WHERE vehicle_id = v.id ORDER BY id ASC LIMIT 1) as vehicle_image
                        FROM bookings b
                        JOIN vehicles v ON b.vehicle_id = v.id
                        LEFT JOIN drivers d ON b.driver_id = d.id
-                       LEFT JOIN vehicle_images vi ON v.id = vi.vehicle_id AND vi.is_primary = 1
                        WHERE b.id = ? AND b.client_id = ?
                        GROUP BY b.id");
 $stmt->execute([$bookingId, $clientId]);
@@ -57,7 +56,7 @@ include __DIR__ . '/../includes/header.php';
                 </div>
                 <div class="card-body">
                     <div style="display: flex; gap: 20px; margin-bottom: 20px;">
-                        <img src="<?php echo $booking['vehicle_image'] ?: BASE_URL . 'assets/images/vehicles/default.jpg'; ?>" 
+                        <img src="<?php echo $booking['vehicle_image'] ? UPLOAD_URL . 'vehicles/' . $booking['vehicle_image'] : BASE_URL . 'assets/images/vehicles/default.jpg'; ?>" 
                              alt="Vehicle" style="width: 120px; height: 90px; object-fit: cover; border-radius: var(--radius);"
                               onerror="this.src='<?php echo BASE_URL; ?>assets/images/vehicles/default.jpg'">
                         <div>
@@ -155,6 +154,13 @@ include __DIR__ . '/../includes/header.php';
                     $paymentStatus->execute([$booking['id']]);
                     $verifiedPayment = $paymentStatus->fetch();
                     
+                    $penaltyPaid = false;
+                    if ($booking['penalty'] > 0) {
+                        $penaltyPayment = $pdo->prepare("SELECT status FROM payments WHERE booking_id = ? AND amount = ? AND status = 'Verified' LIMIT 1");
+                        $penaltyPayment->execute([$booking['id'], $booking['penalty']]);
+                        $penaltyPaid = (bool)$penaltyPayment->fetch();
+                    }
+                    
                     if ($verifiedPayment): ?>
                         <span class="btn btn-success" style="padding: 11px 20px; border-radius: var(--radius-md); font-weight: 800; cursor: default;">
                             <i class="fas fa-check-circle"></i> Payment Approved
@@ -184,16 +190,15 @@ include __DIR__ . '/../includes/header.php';
                     <?php endif; ?>
                     
                     <?php if ($booking['status'] === 'Active'): ?>
-                        <?php $returnReached = strtotime($booking['return_datetime']) <= time(); ?>
-                        <?php if ($returnReached): ?>
-                            <button onclick="endTrip(<?php echo $booking['id']; ?>)" class="btn btn-danger" style="margin-left: 10px;">
-                                <i class="fas fa-stop-circle"></i> End Trip
-                            </button>
-                        <?php else: ?>
-                            <button class="btn btn-secondary" style="margin-left: 10px;" disabled>
-                                <i class="fas fa-clock"></i> End available from <?php echo date('M d, Y h:ia', strtotime($booking['return_datetime'])); ?>
-                            </button>
-                        <?php endif; ?>
+                        <button onclick="endTrip(<?php echo $booking['id']; ?>)" class="btn btn-danger" style="margin-left: 10px;">
+                            <i class="fas fa-stop-circle"></i> End Trip
+                        </button>
+                    <?php endif; ?>
+                    
+                    <?php if ($booking['status'] === 'Completed' && $booking['penalty'] > 0 && !$penaltyPaid): ?>
+                        <a href="<?php echo BASE_URL; ?>client/payment.php?booking_id=<?php echo $booking['id']; ?>&pay_penalty=1" class="btn btn-danger" style="margin-left: 10px;">
+                            <i class="fas fa-exclamation-circle"></i> Pay Penalty
+                        </a>
                     <?php endif; ?>
                 </div>
             </div>

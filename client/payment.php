@@ -15,7 +15,8 @@ $booking = $stmt->fetch();
 if (!$booking) {
     redirect('/client/bookings.php');
 }
-if ($booking['status'] !== 'Approved') {
+$payPenalty = isset($_GET['pay_penalty']) && $booking['status'] === 'Completed' && $booking['penalty'] > 0;
+if (!$payPenalty && $booking['status'] !== 'Approved') {
     $_SESSION['error'] = 'Payment can only be made for approved bookings.';
     redirect('/client/booking-details.php?id=' . $bookingId);
 }
@@ -41,28 +42,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             
-            $stmt = $pdo->prepare("INSERT INTO payments (booking_id, client_id, amount, payment_method, payment_proof, status) 
-                                   VALUES (?, ?, ?, ?, ?, 'Pending')");
+            if ($payPenalty) {
+                $stmt = $pdo->prepare("INSERT INTO payments (booking_id, client_id, amount, payment_method, payment_proof, status, verified_at) 
+                                       VALUES (?, ?, ?, ?, ?, 'Verified', NOW())");
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO payments (booking_id, client_id, amount, payment_method, payment_proof, status) 
+                                       VALUES (?, ?, ?, ?, ?, 'Pending')");
+            }
             if ($stmt->execute([$bookingId, $clientId, $amount, $selectedMethod, $paymentProof])) {
-                $pdo->prepare("UPDATE bookings SET status = 'Payment Submitted' WHERE id = ?")->execute([$bookingId]);
-                
-                $admins = $pdo->query("SELECT id FROM users WHERE role IN ('admin', 'super_admin') AND status = 'active'")->fetchAll();
-                foreach ($admins as $admin) {
-                    createNotification($admin['id'], 'New Payment Submitted', 
-                        'Cash payment of ' . formatCurrency($amount) . ' has been submitted for booking ' . $booking['booking_reference'],
-                        'info', BASE_URL . 'admin/payments/index.php');
+                if (!$payPenalty) {
+                    $pdo->prepare("UPDATE bookings SET status = 'Payment Submitted' WHERE id = ?")->execute([$bookingId]);
+                    $admins = $pdo->query("SELECT id FROM users WHERE role IN ('admin', 'super_admin') AND status = 'active'")->fetchAll();
+                    foreach ($admins as $admin) {
+                        createNotification($admin['id'], 'New Payment Submitted', 
+                            'Cash payment of ' . formatCurrency($amount) . ' has been submitted for booking ' . $booking['booking_reference'],
+                            'info', BASE_URL . 'admin/payments/index.php');
+                    }
+                    logActivity($clientId, 'Payment Submitted', 'Submitted cash payment of ' . formatCurrency($amount) . ' for booking ' . $booking['booking_reference']);
+                    $success = 'Cash payment submitted successfully! Awaiting verification.';
+                } else {
+                    createNotification($clientId, 'Penalty Payment Verified', 
+                        'Your penalty payment of ' . formatCurrency($amount) . ' has been verified.',
+                        'success', BASE_URL . 'client/booking-details.php?id=' . $bookingId);
+                    logActivity($clientId, 'Penalty Payment', 'Paid penalty of ' . formatCurrency($amount) . ' for booking ' . $booking['booking_reference']);
+                    $success = 'Penalty payment of ' . formatCurrency($amount) . ' submitted successfully! No approval required.';
                 }
-                
-                logActivity($clientId, 'Payment Submitted', 'Submitted cash payment of ' . formatCurrency($amount) . ' for booking ' . $booking['booking_reference']);
-                
-                $success = 'Cash payment submitted successfully! Awaiting verification.';
             } else {
                 $error = 'Failed to submit payment. Please try again.';
             }
         }
     }
 }
-$pageTitle = 'Make Payment - Smart Drive Car Hire';
+$pageTitle = $payPenalty ? 'Pay Penalty - Smart Drive Car Hire' : 'Make Payment - Smart Drive Car Hire';
 include __DIR__ . '/../includes/header.php';
 ?>
 <div class="dashboard">
@@ -129,10 +140,13 @@ include __DIR__ . '/../includes/header.php';
                                     <h4 style="margin-top: 0; margin-bottom: 15px; color: var(--text-dark);">
                                         <i class="fas fa-money-bill-wave"></i> Cash Payment
                                     </h4>
-                                    <div class="form-group">
-                                        <label>Amount (KES) *</label>
-                                        <input type="number" name="amount" value="<?php echo $booking['total_amount']; ?>" step="0.01" min="0" required>
-                                    </div>
+                                <div class="form-group">
+                                    <label>Amount (KES) *</label>
+                                    <input type="number" name="amount" value="<?php echo $payPenalty ? $booking['penalty'] : $booking['total_amount']; ?>" step="0.01" min="0" required>
+                                    <?php if ($payPenalty): ?>
+                                        <small style="color: var(--danger);">This is the penalty amount for late return.</small>
+                                    <?php endif; ?>
+                                </div>
                                     <div class="form-group">
                                         <label>Payment Proof *</label>
                                         <input type="file" name="payment_proof" accept="image/*,.pdf" required>
@@ -167,7 +181,10 @@ include __DIR__ . '/../includes/header.php';
                                     </div>
                                     <div class="form-group">
                                         <label>Amount (KES)</label>
-                                        <input type="number" id="mpesaAmount" value="<?php echo $booking['total_amount']; ?>" step="0.01" min="1" readonly style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: #f5f5f5;">
+                                        <input type="number" id="mpesaAmount" value="<?php echo $payPenalty ? $booking['penalty'] : $booking['total_amount']; ?>" step="0.01" min="1" readonly style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; background: #f5f5f5;">
+                                        <?php if ($payPenalty): ?>
+                                            <small style="color: var(--danger);">Penalty amount for late return.</small>
+                                        <?php endif; ?>
                                     </div>
                                     <button type="button" onclick="initiateMpesaSTK()" class="btn" style="width: 100%; padding: 12px; background: #00a650; color: #fff; border: none; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
                                         <i class="fas fa-mobile-alt"></i> Pay with M-Pesa
@@ -241,6 +258,7 @@ function initiateMpesaSTK() {
     formData.append('booking_id', '<?php echo $bookingId; ?>');
     formData.append('amount', amount);
     formData.append('phone_number', phoneNumber);
+    formData.append('pay_penalty', '<?php echo $payPenalty ? "1" : "0"; ?>');
     
     var xhr = new XMLHttpRequest();
     xhr.open('POST', '<?php echo BASE_URL; ?>client/mpesa-stk.php', true);

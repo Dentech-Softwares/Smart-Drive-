@@ -47,6 +47,11 @@ if ($resultCode == 0) {
         }
     }
     
+    $bookingStmt = $pdo->prepare("SELECT status, penalty FROM bookings WHERE id = ?");
+    $bookingStmt->execute([$payment['booking_id']]);
+    $bookingData = $bookingStmt->fetch();
+    $isPenalty = $bookingData && $bookingData['status'] === 'Completed' && $bookingData['penalty'] > 0;
+    
     $pdo->prepare("UPDATE payments SET 
         status = 'Verified', 
         mpesa_transaction_id = ?, 
@@ -57,16 +62,18 @@ if ($resultCode == 0) {
         WHERE id = ?")
        ->execute([$mpesaReceiptNumber, $mpesaPhoneNumber, $mpesaReceiptNumber, $payment['id']]);
     
-    $pdo->prepare("UPDATE bookings SET status = 'Confirmed' WHERE id = ?")
-       ->execute([$payment['booking_id']]);
-    
-    $vehicleStmt = $pdo->prepare("SELECT vehicle_id FROM bookings WHERE id = ?");
-    $vehicleStmt->execute([$payment['booking_id']]);
-    $bookingData = $vehicleStmt->fetch();
-    
-    if ($bookingData && $bookingData['vehicle_id']) {
-        $pdo->prepare("UPDATE vehicles SET status = 'Booked' WHERE id = ?")
-           ->execute([$bookingData['vehicle_id']]);
+    if (!$isPenalty) {
+        $pdo->prepare("UPDATE bookings SET status = 'Confirmed' WHERE id = ?")
+           ->execute([$payment['booking_id']]);
+        
+        $vehicleStmt = $pdo->prepare("SELECT vehicle_id FROM bookings WHERE id = ?");
+        $vehicleStmt->execute([$payment['booking_id']]);
+        $bookingData2 = $vehicleStmt->fetch();
+        
+        if ($bookingData2 && $bookingData2['vehicle_id']) {
+            $pdo->prepare("UPDATE vehicles SET status = 'Booked' WHERE id = ?")
+               ->execute([$bookingData2['vehicle_id']]);
+        }
     }
     
     $clientStmt = $pdo->prepare("SELECT user_id FROM bookings WHERE id = ?");
@@ -74,19 +81,31 @@ if ($resultCode == 0) {
     $clientData = $clientStmt->fetch();
     
     if ($clientData && $clientData['user_id']) {
-        createNotification($clientData['user_id'], 'Payment Verified', 
-            'Your M-Pesa payment of ' . formatCurrency($payment['amount']) . ' has been verified. Booking confirmed.',
-            'success', BASE_URL . 'client/booking-details.php?id=' . $payment['booking_id']);
+        if ($isPenalty) {
+            createNotification($clientData['user_id'], 'Penalty Payment Verified', 
+                'Your M-Pesa penalty payment of ' . formatCurrency($payment['amount']) . ' has been verified.',
+                'success', BASE_URL . 'client/booking-details.php?id=' . $payment['booking_id']);
+        } else {
+            createNotification($clientData['user_id'], 'Payment Verified', 
+                'Your M-Pesa payment of ' . formatCurrency($payment['amount']) . ' has been verified. Booking confirmed.',
+                'success', BASE_URL . 'client/booking-details.php?id=' . $payment['booking_id']);
+        }
     }
     
-    $admins = $pdo->query("SELECT id FROM users WHERE role IN ('admin', 'super_admin') AND status = 'active'")->fetchAll();
-    foreach ($admins as $admin) {
-        createNotification($admin['id'], 'Payment Verified', 
-            'M-Pesa payment of ' . formatCurrency($payment['amount']) . ' received for booking ' . $payment['booking_id'],
-            'success', BASE_URL . 'admin/payments/index.php');
+    if (!$isPenalty) {
+        $admins = $pdo->query("SELECT id FROM users WHERE role IN ('admin', 'super_admin') AND status = 'active'")->fetchAll();
+        foreach ($admins as $admin) {
+            createNotification($admin['id'], 'Payment Verified', 
+                'M-Pesa payment of ' . formatCurrency($payment['amount']) . ' received for booking ' . $payment['booking_id'],
+                'success', BASE_URL . 'admin/payments/index.php');
+        }
     }
     
-    logActivity($payment['client_id'], 'Payment Verified', 'M-Pesa payment of ' . formatCurrency($payment['amount']) . ' verified');
+    if ($isPenalty) {
+        logActivity($payment['client_id'], 'Penalty Payment', 'M-Pesa penalty payment of ' . formatCurrency($payment['amount']) . ' verified');
+    } else {
+        logActivity($payment['client_id'], 'Payment Verified', 'M-Pesa payment of ' . formatCurrency($payment['amount']) . ' verified');
+    }
 } else {
     $pdo->prepare("UPDATE payments SET status = 'Rejected', mpesa_status = 'Failed', rejection_reason = ? WHERE id = ?")
        ->execute([$resultDesc, $payment['id']]);

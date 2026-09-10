@@ -93,8 +93,8 @@ if (!isLoggedIn()) {
     } elseif ($action === 'end_trip' && isset($input['booking_id'])) {
         $bookingId = (int)$input['booking_id'];
         
-        $stmt = $pdo->prepare("SELECT * FROM bookings WHERE id = ?");
-        $stmt->execute([$bookingId]);
+        $stmt = $pdo->prepare("SELECT * FROM bookings WHERE id = ? AND client_id = ?");
+        $stmt->execute([$bookingId, $_SESSION['user_id']]);
         $booking = $stmt->fetch();
         
         if (!$booking) {
