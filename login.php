@@ -11,12 +11,17 @@ if (isLoggedIn()) {
 }
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = sanitize($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
-    
-    if (empty($email) || empty($password)) {
-        $error = 'Please enter both email and password.';
+    if (!checkRateLimit('login_' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'))) {
+        $error = 'Too many login attempts. Please try again in 1 minute.';
+    } elseif (!verifyCsrf($_POST['csrf_token'] ?? '')) {
+        $error = 'Invalid request. Please try again.';
     } else {
+        $email = sanitize($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        
+        if (empty($email) || empty($password)) {
+            $error = 'Please enter both email and password.';
+        } else {
         $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? AND status = 'active'");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
@@ -38,6 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } else {
             $error = 'Invalid email or password.';
+        }
         }
     }
 }
@@ -67,6 +73,7 @@ include __DIR__ . '/includes/navbar.php';
             <?php endif; ?>
             
             <form method="POST" action="">
+                <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
                 <div class="form-group">
                     <label>Email Address</label>
                     <input type="email" name="email" required placeholder="Enter your email">
@@ -84,5 +91,4 @@ include __DIR__ . '/includes/navbar.php';
         </div>
     </div>
 </div>
-</body>
-</html>
+<?php include __DIR__ . '/includes/scripts.php'; ?>

@@ -86,7 +86,7 @@ include __DIR__ . '/../includes/header.php';
         </div>
         
         <div class="stats-cards">
-            <div class="stat-dash-card">
+            <div class="stat-dash-card stat-total-vehicles">
                 <div class="stat-dash-icon" style="background: linear-gradient(135deg, #0d6efd, #0a58ca);">
                     <i class="fas fa-car"></i>
                 </div>
@@ -95,7 +95,7 @@ include __DIR__ . '/../includes/header.php';
                     <p>Total Vehicles</p>
                 </div>
             </div>
-            <div class="stat-dash-card">
+            <div class="stat-dash-card stat-available-vehicles">
                 <div class="stat-dash-icon" style="background: linear-gradient(135deg, #198754, #146c43);">
                     <i class="fas fa-check-circle"></i>
                 </div>
@@ -104,7 +104,7 @@ include __DIR__ . '/../includes/header.php';
                     <p>Available Vehicles</p>
                 </div>
             </div>
-            <div class="stat-dash-card">
+            <div class="stat-dash-card stat-active-bookings">
                 <div class="stat-dash-icon" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark));">
                     <i class="fas fa-spinner"></i>
                 </div>
@@ -113,7 +113,7 @@ include __DIR__ . '/../includes/header.php';
                     <p>Active Bookings</p>
                 </div>
             </div>
-            <div class="stat-dash-card">
+            <div class="stat-dash-card stat-pending-bookings">
                 <div class="stat-dash-icon" style="background: linear-gradient(135deg, #ffc107, #e0a800);">
                     <i class="fas fa-clock"></i>
                 </div>
@@ -131,7 +131,7 @@ include __DIR__ . '/../includes/header.php';
                     <p>Revenue</p>
                 </div>
             </div>
-            <div class="stat-dash-card">
+            <div class="stat-dash-card stat-pending-payments">
                 <div class="stat-dash-icon" style="background: linear-gradient(135deg, #fd7e14, #e8590c);">
                     <i class="fas fa-exclamation-circle"></i>
                 </div>
@@ -140,7 +140,7 @@ include __DIR__ . '/../includes/header.php';
                     <p>Pending Payments</p>
                 </div>
             </div>
-            <div class="stat-dash-card">
+            <div class="stat-dash-card stat-active-trips">
                 <div class="stat-dash-icon" style="background: linear-gradient(135deg, #6610f2, #520dc2);">
                     <i class="fas fa-road"></i>
                 </div>
@@ -149,7 +149,7 @@ include __DIR__ . '/../includes/header.php';
                     <p>Active Trips</p>
                 </div>
             </div>
-            <div class="stat-dash-card">
+            <div class="stat-dash-card stat-total-clients">
                 <div class="stat-dash-icon" style="background: linear-gradient(135deg, #d63384, #a61e4d);">
                     <i class="fas fa-users"></i>
                 </div>
@@ -221,7 +221,7 @@ include __DIR__ . '/../includes/header.php';
                     <p>Bookings will appear here once clients start making reservations.</p>
                 </div>
             <?php else: ?>
-                <table class="data-table">
+                <table class="data-table" id="recentBookingsTable">
                     <thead>
                         <tr>
                             <th>Reference</th>

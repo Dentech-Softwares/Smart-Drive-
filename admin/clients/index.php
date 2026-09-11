@@ -164,3 +164,4 @@ function toggleStatus(userId, currentStatus) {
     });
 }
 </script>
+<?php include __DIR__ . '/../../includes/scripts.php'; ?>

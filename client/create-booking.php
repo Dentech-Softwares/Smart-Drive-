@@ -8,7 +8,10 @@ $clientId = $_SESSION['user_id'];
 $error = '';
 $success = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $vehicleId = (int)($_POST['vehicle_id'] ?? 0);
+    if (!verifyCsrf($_POST['csrf_token'] ?? '')) {
+        $error = 'Invalid request. Please try again.';
+    } else {
+        $vehicleId = (int)($_POST['vehicle_id'] ?? 0);
     $pickupLocation = sanitize($_POST['pickup_location'] ?? '');
     $returnLocation = sanitize($_POST['return_location'] ?? '');
     $pickupDatetime = sanitize($_POST['pickup_datetime'] ?? '');
@@ -54,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
+}
 }
 if ($error) {
     $_SESSION['flash'] = ['message' => $error, 'type' => 'error'];

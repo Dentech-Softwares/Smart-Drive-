@@ -199,4 +199,5 @@ function promoteAdmin(userId) {
     });
 }
 </script>
+<?php include __DIR__ . '/../../includes/scripts.php'; ?>
 

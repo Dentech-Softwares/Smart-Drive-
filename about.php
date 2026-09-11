@@ -60,5 +60,4 @@ include __DIR__ . '/includes/navbar.php';
         </div>
     </div>
 </section>
-</body>
-</html>
+<?php include __DIR__ . '/includes/scripts.php'; ?>

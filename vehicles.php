@@ -156,5 +156,4 @@ $categories = $pdo->query("SELECT * FROM vehicle_categories WHERE status = 'acti
         <?php endif; ?>
     </div>
 </section>
-</body>
-</html>
+<?php include __DIR__ . '/includes/scripts.php'; ?>

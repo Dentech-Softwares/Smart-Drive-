@@ -165,15 +165,18 @@ include __DIR__ . '/../includes/header.php';
                         <span class="btn btn-success" style="padding: 11px 20px; border-radius: var(--radius-md); font-weight: 800; cursor: default;">
                             <i class="fas fa-check-circle"></i> Payment Approved
                         </span>
-                    <?php elseif ($booking['status'] === 'Approved'): ?>
-                        <a href="<?php echo BASE_URL; ?>client/payment.php?booking_id=<?php echo $booking['id']; ?>" class="btn btn-primary">
+                    <?php endif; ?>
+                    
+                    <?php if ($booking['status'] === 'Pending' || $booking['status'] === 'Approved'): ?>
+                        <a href="<?php echo BASE_URL; ?>client/payment.php?booking_id=<?php echo $booking['id']; ?>" class="btn btn-primary" style="margin-left: 10px;">
                             <i class="fas fa-credit-card"></i> Make Payment
                         </a>
-                        <?php if (in_array($booking['status'], ['Pending', 'Approved'])): ?>
-                            <button onclick="cancelBooking(<?php echo $booking['id']; ?>)" class="btn btn-outline" style="margin-left: 10px; border-color: var(--danger); color: var(--danger);">
-                                <i class="fas fa-times"></i> Cancel Booking
-                            </button>
-                        <?php endif; ?>
+                    <?php endif; ?>
+                    
+                    <?php if (!in_array($booking['status'], ['Active', 'Completed', 'Cancelled'])): ?>
+                        <button onclick="cancelBooking(<?php echo $booking['id']; ?>)" class="btn btn-outline" style="margin-left: 10px; border-color: var(--danger); color: var(--danger);">
+                            <i class="fas fa-times-circle"></i> Cancel Booking
+                        </button>
                     <?php endif; ?>
                     
                     <?php if ($booking['status'] === 'Confirmed'): ?>
@@ -301,3 +304,4 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+<?php include __DIR__ . '/../includes/scripts.php'; ?>

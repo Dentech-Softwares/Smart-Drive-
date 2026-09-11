@@ -209,7 +209,107 @@ function initCharts() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', initCharts);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        initCharts();
+        initDashboardAutoRefresh();
+    });
+} else {
+    initCharts();
+    initDashboardAutoRefresh();
+}
+
+function initDashboardAutoRefresh() {
+    const dashboardUrl = (typeof BASE_URL !== 'undefined' ? BASE_URL : '/') + 'api/dashboard-stats.php';
+    
+    function refreshDashboard() {
+        fetch(dashboardUrl, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.stats) {
+                updateStatCards(data.stats);
+                updateNotificationBadge(data.stats.unreadNotifications);
+                updateRecentBookings(data.recentBookings);
+            }
+        })
+        .catch(() => {});
+    }
+    
+    setInterval(refreshDashboard, 30000);
+}
+
+function updateStatCards(stats) {
+    const statMap = {
+        totalVehicles: { selector: '.stat-total-vehicles .stat-number', fallback: 0 },
+        availableVehicles: { selector: '.stat-available-vehicles .stat-number', fallback: 0 },
+        activeBookings: { selector: '.stat-active-bookings .stat-number', fallback: 0 },
+        pendingBookings: { selector: '.stat-pending-bookings .stat-number', fallback: 0 },
+        totalClients: { selector: '.stat-total-clients .stat-number', fallback: 0 },
+        totalDrivers: { selector: '.stat-total-drivers .stat-number', fallback: 0 },
+        pendingPayments: { selector: '.stat-pending-payments .stat-number', fallback: 0 },
+        activeTrips: { selector: '.stat-active-trips .stat-number', fallback: 0 }
+    };
+    
+    Object.keys(stats).forEach(key => {
+        if (key === 'revenue' || key === 'unreadNotifications') return;
+        const mapping = statMap[key];
+        if (!mapping) return;
+        const el = document.querySelector(mapping.selector);
+        if (el) {
+            const newVal = String(stats[key]);
+            if (el.textContent.trim() !== newVal) {
+                el.textContent = newVal;
+                el.style.transform = 'scale(1.15)';
+                el.style.transition = 'transform 0.3s ease';
+                setTimeout(() => { el.style.transform = 'scale(1)'; }, 300);
+            }
+        }
+    });
+}
+
+function updateNotificationBadge(count) {
+    const badge = document.querySelector('.notification-badge');
+    if (badge) {
+        const current = parseInt(badge.textContent) || 0;
+        if (current !== count) {
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'inline-block' : 'none';
+        }
+    }
+}
+
+function updateRecentBookings(bookings) {
+    if (!bookings || !bookings.length) return;
+    const tbody = document.querySelector('#recentBookingsTable tbody');
+    if (!tbody) return;
+    
+    const existingRefs = Array.from(tbody.querySelectorAll('tr')).map(tr => tr.dataset.ref);
+    const newRefs = bookings.map(b => String(b.id));
+    
+    if (JSON.stringify(existingRefs) === JSON.stringify(newRefs)) return;
+    
+    tbody.innerHTML = bookings.map(booking => `
+        <tr data-ref="${booking.id}">
+            <td><strong>${escapeHtml(booking.booking_reference)}</strong></td>
+            <td>${escapeHtml(booking.client_name)}</td>
+            <td>${escapeHtml(booking.brand + ' ' + booking.model)}</td>
+            <td>${escapeHtml(booking.formatted_amount)}</td>
+            <td>${escapeHtml(booking.status_label)}</td>
+            <td>
+                <a href="${BASE_URL}admin/bookings/details.php?id=${booking.id}" class="btn btn-sm btn-outline">View</a>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
 function filterTrend() {
     const start = document.getElementById('trendStartDate').value;

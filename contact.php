@@ -6,22 +6,26 @@ include __DIR__ . '/includes/navbar.php';
 $success = '';
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $fullName = sanitize($_POST['full_name'] ?? '');
-    $email = sanitize($_POST['email'] ?? '');
-    $phone = sanitize($_POST['phone'] ?? '');
-    $subject = sanitize($_POST['subject'] ?? '');
-    $message = sanitize($_POST['message'] ?? '');
-    
-    if (empty($fullName) || empty($email) || empty($subject) || empty($message)) {
-        $error = 'Please fill in all required fields.';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Please enter a valid email address.';
+    if (!verifyCsrf($_POST['csrf_token'] ?? '')) {
+        $error = 'Invalid request. Please try again.';
     } else {
-        $stmt = $pdo->prepare("INSERT INTO contact_messages (full_name, email, phone, subject, message) VALUES (?, ?, ?, ?, ?)");
-        if ($stmt->execute([$fullName, $email, $phone, $subject, $message])) {
-            $success = 'Thank you for contacting us! We will get back to you soon.';
+        $fullName = sanitize($_POST['full_name'] ?? '');
+        $email = sanitize($_POST['email'] ?? '');
+        $phone = sanitize($_POST['phone'] ?? '');
+        $subject = sanitize($_POST['subject'] ?? '');
+        $message = sanitize($_POST['message'] ?? '');
+        
+        if (empty($fullName) || empty($email) || empty($subject) || empty($message)) {
+            $error = 'Please fill in all required fields.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = 'Please enter a valid email address.';
         } else {
-            $error = 'Failed to send message. Please try again.';
+            $stmt = $pdo->prepare("INSERT INTO contact_messages (full_name, email, phone, subject, message) VALUES (?, ?, ?, ?, ?)");
+            if ($stmt->execute([$fullName, $email, $phone, $subject, $message])) {
+                $success = 'Thank you for contacting us! We will get back to you soon.';
+            } else {
+                $error = 'Failed to send message. Please try again.';
+            }
         }
     }
 }
@@ -48,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endif; ?>
                     
                     <form method="POST" action="">
+                        <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
                         <div class="form-group">
                             <label>Full Name *</label>
                             <input type="text" name="full_name" required placeholder="Enter your full name">
@@ -127,5 +132,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </section>
-</body>
-</html>
+<?php include __DIR__ . '/includes/scripts.php'; ?>

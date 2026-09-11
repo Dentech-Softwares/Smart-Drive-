@@ -11,10 +11,11 @@
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/responsive.css">
     <?php if (isset($extraCSS)) echo $extraCSS; ?>
     <script>
+    const BASE_URL = <?php echo json_encode(BASE_URL); ?>;
     (function() {
         const IDLE_TIMEOUT = 5 * 60 * 1000;
         let idleTimer;
-        const logoutUrl = '<?php echo BASE_URL; ?>logout.php';
+        const logoutUrl = BASE_URL + 'logout.php';
         
         function resetIdleTimer() {
             clearTimeout(idleTimer);

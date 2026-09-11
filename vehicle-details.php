@@ -86,6 +86,7 @@ $maxReturnDate = date('Y-m-d\TH:i', strtotime('+30 days'));
                         </div>
                     <?php else: ?>
                         <form id="bookingForm" method="POST" action="<?php echo BASE_URL; ?>client/create-booking.php">
+                            <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
                             <input type="hidden" name="vehicle_id" value="<?php echo $vehicle['id']; ?>">
                             <input type="hidden" name="price_per_day" id="price_per_day" value="<?php echo $vehicle['price_per_day']; ?>">
                             <input type="hidden" name="with_driver" id="with_driver_hidden" value="0">
@@ -185,5 +186,4 @@ document.getElementById('pickup_datetime')?.addEventListener('change', calculate
 document.getElementById('return_datetime')?.addEventListener('change', calculateRental);
 document.getElementById('with_driver')?.addEventListener('change', calculateRental);
 </script>
-</body>
-</html>
+<?php include __DIR__ . '/includes/scripts.php'; ?>

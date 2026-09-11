@@ -35,14 +35,23 @@ function sanitize($data) {
 function uploadFile($file, $directory = 'general') {
     $allowed = ['jpg', 'jpeg', 'png', 'gif', 'pdf'];
     $maxSize = 5 * 1024 * 1024;
+    $allowedMime = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
     
     if (!isset($file['tmp_name']) || $file['error'] !== UPLOAD_ERR_OK) {
         return ['success' => false, 'message' => 'File upload failed'];
     }
     
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mimeType = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
+    
+    if (!in_array($mimeType, $allowedMime)) {
+        return ['success' => false, 'message' => 'Invalid file type'];
+    }
+    
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
     if (!in_array($ext, $allowed)) {
-        return ['success' => false, 'message' => 'Invalid file type'];
+        return ['success' => false, 'message' => 'Invalid file extension'];
     }
     
     if ($file['size'] > $maxSize) {
@@ -173,6 +182,27 @@ function csrf_token() {
 }
 function verifyCsrf($token) {
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+}
+function checkRateLimit($key, $maxAttempts = 5, $decaySeconds = 60) {
+    $now = time();
+    $file = sys_get_temp_dir() . '/rl_' . md5($key) . '.json';
+    
+    if (file_exists($file)) {
+        $data = json_decode(file_get_contents($file), true);
+        if ($data && $now - $data['timestamp'] < $decaySeconds) {
+            if ($data['attempts'] >= $maxAttempts) {
+                return false;
+            }
+            $data['attempts']++;
+        } else {
+            $data = ['attempts' => 1, 'timestamp' => $now];
+        }
+    } else {
+        $data = ['attempts' => 1, 'timestamp' => $now];
+    }
+    
+    file_put_contents($file, json_encode($data));
+    return true;
 }
 function paginate($query, $perPage = 10, $page = 1) {
     global $pdo;

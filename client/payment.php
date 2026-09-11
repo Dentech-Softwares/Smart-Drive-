@@ -127,6 +127,7 @@ include __DIR__ . '/../includes/header.php';
                             <a href="<?php echo BASE_URL; ?>client/booking-details.php?id=<?php echo $booking['id']; ?>" class="btn btn-primary">View Booking</a>
                         <?php else: ?>
                             <form method="POST" action="" enctype="multipart/form-data" id="paymentForm">
+                                <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
                                 <div class="form-group">
                                     <label>Payment Method *</label>
                                     <select name="payment_method" id="paymentMethod" required onchange="togglePaymentMethod()">

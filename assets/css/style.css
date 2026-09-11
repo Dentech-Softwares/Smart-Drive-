@@ -111,19 +111,21 @@ button, input, select, textarea { font: inherit; }
 .nav-brand {
     font-family: Outfit, sans-serif; color: #fff; font-weight: 800;
     letter-spacing: 1px; font-size: 1.2rem; margin-right: auto;
+    text-decoration: none;
 }
 .nav-brand span { color: var(--primary-2); }
-.nav-menu { display: flex; align-items: center; gap: 6px; }
+.nav-menu { display: flex; align-items: center; gap: 6px; list-style: none; margin: 0; padding: 0; }
 .nav-menu a {
     display: block; color: rgba(255,255,255,0.72); padding: 10px 12px;
-    font-size: 0.9rem; font-weight: 700; position: relative;
+    font-size: 0.9rem; font-weight: 700; position: relative; text-decoration: none;
 }
 .nav-menu a:hover, .nav-menu a.active { color: #fff; }
 .nav-menu a.active:after {
     content: ""; position: absolute; left: 12px; right: 12px; bottom: 4px;
     height: 2px; background: var(--primary-2); border-radius: 5px;
 }
-.nav-actions { display: flex; gap: 9px; }
+.nav-actions { display: flex; gap: 9px; align-items: center; }
+.nav-mobile-auth { display: none; list-style: none; }
 .menu-toggle {
     display: none; border: 0; background: rgba(255,255,255,0.08);
     color: #fff; width: 42px; height: 42px; border-radius: 10px;
@@ -430,7 +432,7 @@ button, input, select, textarea { font: inherit; }
     min-height: calc(100vh - 70px);
     display: flex; align-items: center; justify-content: center;
     background: linear-gradient(135deg, #f6f8fb, #eef3f8);
-    padding: 40px 20px;
+    padding: 20px 16px;
 }
 .auth-container {
     display: grid; grid-template-columns: 1fr 1fr;

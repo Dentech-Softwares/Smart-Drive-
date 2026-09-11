@@ -1,6 +1,6 @@
 // Main JavaScript for Smart Drive Car Hire
 
-document.addEventListener('DOMContentLoaded', function() {
+function initMain() {
     
     // Mobile Menu Toggle
     const menuToggle = document.getElementById('menuToggle');
@@ -17,6 +17,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 icon.classList.remove('fa-times');
                 icon.classList.add('fa-bars');
             }
+        });
+        
+        // Close menu when clicking a link
+        navMenu.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', function() {
+                navMenu.classList.remove('active');
+                const icon = menuToggle.querySelector('i');
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            });
         });
         
         // Close menu when clicking outside
@@ -179,4 +189,10 @@ document.addEventListener('DOMContentLoaded', function() {
             observer.observe(counter);
         });
     }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMain);
+} else {
+    initMain();
+}

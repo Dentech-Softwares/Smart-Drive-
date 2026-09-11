@@ -12,6 +12,11 @@ if (isLoggedIn()) {
 $error = '';
 $success = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!checkRateLimit('register_' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'))) {
+        $error = 'Too many registration attempts. Please try again in 1 minute.';
+    } elseif (!verifyCsrf($_POST['csrf_token'] ?? '')) {
+        $error = 'Invalid request. Please try again.';
+    } else {
     $fullName = sanitize($_POST['full_name'] ?? '');
     $email = sanitize($_POST['email'] ?? '');
     $phone = sanitize($_POST['phone'] ?? '');
@@ -40,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = 'Registration failed. Please try again.';
             }
         }
+    }
     }
 }
 $pageTitle = 'Register';
@@ -72,6 +78,7 @@ include __DIR__ . '/includes/navbar.php';
                 <a href="<?php echo BASE_URL; ?>login.php" class="btn btn-primary" style="width: 100%;">Go to Login</a>
             <?php else: ?>
                 <form method="POST" action="">
+                    <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
                     <div class="form-group">
                         <label>Full Name</label>
                         <input type="text" name="full_name" required placeholder="Enter your full name">
@@ -102,5 +109,4 @@ include __DIR__ . '/includes/navbar.php';
         </div>
     </div>
 </div>
-</body>
-</html>
+<?php include __DIR__ . '/includes/scripts.php'; ?>

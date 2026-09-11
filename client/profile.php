@@ -100,21 +100,34 @@ include __DIR__ . '/../includes/header.php';
         <div class="profile-header">
             <img src="<?php echo $user['profile_image'] ? UPLOAD_URL . 'users/' . $user['profile_image'] : BASE_URL . '/assets/images/users/default.jpg'; ?>" 
                  alt="Profile" class="profile-avatar"
-                  onerror="this.src='<?php echo BASE_URL; ?>assets/images/users/default.jpg'">
+                 onerror="this.src='<?php echo BASE_URL; ?>assets/images/users/default.jpg'">
             <div class="profile-info">
                 <h2><?php echo htmlspecialchars($user['full_name']); ?></h2>
-                <p><?php echo htmlspecialchars($user['email']); ?></p>
-                <p><?php echo htmlspecialchars($user['phone']); ?></p>
+                <p><i class="fas fa-envelope"></i> <?php echo htmlspecialchars($user['email']); ?></p>
+                <p><i class="fas fa-phone"></i> <?php echo htmlspecialchars($user['phone']); ?></p>
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <strong><?php echo getCount('bookings', "client_id = $clientId"); ?></strong>
+                        <span>Total Bookings</span>
+                    </div>
+                    <div class="profile-stat">
+                        <strong><?php echo date('M Y', strtotime($user['created_at'] ?? 'now')); ?></strong>
+                        <span>Member Since</span>
+                    </div>
+                </div>
             </div>
         </div>
         
         <div class="profile-tabs">
-            <button class="profile-tab active" onclick="showTab('edit-profile')">Edit Profile</button>
-            <button class="profile-tab" onclick="showTab('change-password')">Change Password</button>
+            <button class="profile-tab active" onclick="showTab('edit-profile', this)">Edit Profile</button>
+            <button class="profile-tab" onclick="showTab('change-password', this)">Change Password</button>
         </div>
         
         <div id="edit-profile" class="tab-content">
-            <div class="card">
+            <div class="card profile-form-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-user-edit"></i> Edit Profile</h3>
+                </div>
                 <div class="card-body">
                     <form method="POST" action="" enctype="multipart/form-data">
                         <div class="form-group">
@@ -145,7 +158,10 @@ include __DIR__ . '/../includes/header.php';
         </div>
         
         <div id="change-password" class="tab-content" style="display: none;">
-            <div class="card">
+            <div class="card profile-form-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-lock"></i> Change Password</h3>
+                </div>
                 <div class="card-body">
                     <form method="POST" action="">
                         <div class="form-group">
@@ -170,11 +186,11 @@ include __DIR__ . '/../includes/header.php';
     </main>
 </div>
 <script>
-function showTab(tabId) {
+function showTab(tabId, btn) {
     document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
-    document.querySelectorAll('.profile-tab').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.profile-tab').forEach(b => b.classList.remove('active'));
     document.getElementById(tabId).style.display = 'block';
-    event.target.classList.add('active');
+    btn.classList.add('active');
 }
 </script>
 </body>

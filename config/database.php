@@ -1,6 +1,15 @@
 <?php
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'domain' => '',
+    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+    'httponly' => true,
+    'samesite' => 'Strict'
+]);
+session_name('SMARTDRIVE_SESSION');
 session_start();
 define('APP_NAME', 'Smart Drive Car Hire');
 if (!defined('BASE_URL')) {

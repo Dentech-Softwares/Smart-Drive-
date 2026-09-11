@@ -134,4 +134,5 @@ include __DIR__ . '/../../includes/header.php';
     </main>
 </div>
 <div class="sidebar-overlay"></div>
+<?php include __DIR__ . '/../../includes/scripts.php'; ?>
 
