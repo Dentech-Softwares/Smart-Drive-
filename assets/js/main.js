@@ -117,7 +117,8 @@ function initMain() {
             const btn = this.querySelector('button[type="submit"]');
             if (btn) {
                 const originalText = btn.innerHTML;
-                btn.innerHTML = '<span class="spinner spinner-sm"></span> Processing...';
+                btn.innerHTML = '<span class="spinner-border-sm"></span> Processing...';
+                btn.classList.add('btn-loading');
                 btn.disabled = true;
                 btn.setAttribute('data-original-text', originalText);
             }

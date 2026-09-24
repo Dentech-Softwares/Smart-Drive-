@@ -101,9 +101,27 @@
     border-radius: 18px; 
     box-shadow: 0 4px 20px rgba(0,0,0,0.03);
 }
-.chart-container canvas { width: 100% !important; }
+.chart-container canvas { width: 100% !important; height: 100% !important; }
+.chart-wrapper { position: relative; height: 300px; width: 100%; }
 .chart-container h4 { margin-bottom: 16px; color: var(--text-dark); font-weight: 600; }
 .trend-chart-wrapper { position: relative; height: 340px; width: 100%; }
+.trend-chart-wrapper canvas { width: 100% !important; height: 100% !important; }
+.trend-loading,
+.trend-zero-state {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    z-index: 5;
+    pointer-events: none;
+}
+.trend-loading i { font-size: 1.6rem; color: var(--primary); }
+.trend-zero-state i { font-size: 1.4rem; color: var(--primary); }
 .trend-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
 .trend-header h4 { margin: 0; font-size: 1.05rem; font-weight: 700; color: #1a1a2e; display: flex; align-items: center; gap: 10px; }
 .trend-header h4 i { color: #0d6efd; font-size: 1.1rem; }

@@ -83,6 +83,18 @@ button, input, select, textarea { font: inherit; }
 }
 .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .btn:active { transform: translateY(0); }
+/* Unified button loading state: compact spinner + locked padding, no layout shift */
+.btn-loading {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 0.6rem 1.2rem !important;
+    white-space: nowrap !important;
+    pointer-events: none !important;
+}
+.btn-loading .spinner-border-sm,
+.btn-loading .spinner-sm { margin: 0; }
 .btn-primary {
     background: linear-gradient(135deg, var(--primary), var(--primary-2));
     color: #fff;

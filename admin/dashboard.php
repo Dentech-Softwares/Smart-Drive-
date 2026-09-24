@@ -22,24 +22,9 @@ $stmt = $pdo->query("SELECT b.*, u.full_name as client_name, CONCAT(v.brand, ' '
 $recentBookings = $stmt->fetchAll();
 $unreadNotifications = getUnreadNotifications($user['id']);
 
-$trendStartDate = isset($_GET['start_date']) ? sanitize($_GET['start_date']) : (new DateTime('first day of previous month'))->format('Y-m-d');
+$trendStartDate = isset($_GET['start_date']) ? sanitize($_GET['start_date']) : (new DateTime('first day of -5 months'))->format('Y-m-01');
 $trendEndDate = isset($_GET['end_date']) ? sanitize($_GET['end_date']) : date('Y-m-d');
-$trendGroup = (strtotime($trendEndDate) - strtotime($trendStartDate)) > 604800 ? '%b %d' : '%b %d';
-$trendFormat = (strtotime($trendEndDate) - strtotime($trendStartDate)) > 604800 ? "DATE_FORMAT(created_at, '%%b %Y')" : "DATE_FORMAT(created_at, '%%b %d')";
 
-$trendLabels = [];
-$trendValues = [];
-$trendStmt = $pdo->prepare("SELECT $trendFormat as period, COUNT(*) as count 
-                           FROM bookings 
-                           WHERE created_at BETWEEN ? AND ? 
-                           GROUP BY period 
-                           ORDER BY period");
-$trendStmt->execute([$trendStartDate . ' 00:00:00', $trendEndDate . ' 23:59:59']);
-$trendRows = $trendStmt->fetchAll();
-foreach ($trendRows as $row) {
-    $trendLabels[] = $row['period'];
-    $trendValues[] = (int)$row['count'];
-}
 $pageTitle = 'Dashboard - Smart Drive Car Hire';
 include __DIR__ . '/../includes/header.php';
 ?>
@@ -163,20 +148,23 @@ include __DIR__ . '/../includes/header.php';
         <div class="dashboard-grid">
             <div class="chart-container">
                 <h4>Booking Status Distribution</h4>
+                <div class="chart-wrapper">
                  <canvas id="bookingStatsChart"
-                    data-labels="Pending,Approved,Confirmed,Active,Completed,Cancelled"
-                    data-values="<?php 
-                        echo getCount('bookings', "status = 'Pending'") . ',';
-                        echo getCount('bookings', "status = 'Approved'") . ',';
-                        echo getCount('bookings', "status = 'Confirmed'") . ',';
-                        echo getCount('bookings', "status = 'Active'") . ',';
-                        echo getCount('bookings', "status = 'Completed'") . ',';
-                        echo getCount('bookings', "status = 'Cancelled'");
-                    ?>">
-                </canvas>
+                     data-labels="Pending,Approved,Confirmed,Active,Completed,Cancelled"
+                     data-values="<?php 
+                         echo getCount('bookings', "status = 'Pending'") . ',';
+                         echo getCount('bookings', "status = 'Approved'") . ',';
+                         echo getCount('bookings', "status = 'Confirmed'") . ',';
+                         echo getCount('bookings', "status = 'Active'") . ',';
+                         echo getCount('bookings', "status = 'Completed'") . ',';
+                         echo getCount('bookings', "status = 'Cancelled'");
+                     ?>">
+                 </canvas>
+                </div>
             </div>
             <div class="chart-container">
                 <h4>Vehicle Status Distribution</h4>
+                <div class="chart-wrapper">
                 <canvas id="vehicleStatusChart"
                     data-labels="Available,Booked,On Trip,Maintenance,Inactive"
                     data-values="<?php 
@@ -187,6 +175,7 @@ include __DIR__ . '/../includes/header.php';
                         echo getCount('vehicles', "status = 'Inactive'");
                     ?>">
                 </canvas>
+                </div>
             </div>
         </div>
         
@@ -196,16 +185,20 @@ include __DIR__ . '/../includes/header.php';
                 <div class="trend-filters">
                     <input type="date" id="trendStartDate" value="<?php echo $trendStartDate; ?>">
                     <input type="date" id="trendEndDate" value="<?php echo $trendEndDate; ?>">
-                    <button onclick="filterTrend()" class="btn btn-sm btn-primary">
+                    <button id="trendFilterBtn" class="btn btn-sm btn-primary">
                         <i class="fas fa-filter"></i> Filter
                     </button>
                 </div>
             </div>
             <div class="trend-chart-wrapper">
-                <canvas id="bookingTrendChart"
-                    data-labels="<?php echo htmlspecialchars(implode(',', $trendLabels)); ?>"
-                    data-values="<?php echo implode(',', $trendValues); ?>">
-                </canvas>
+                <div class="trend-loading" id="trendLoading">
+                    <i class="fas fa-spinner fa-pulse"></i>
+                </div>
+                <canvas id="bookingTrendChart"></canvas>
+                <div class="trend-zero-state" id="trendZeroState">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>No booking activity recorded for the selected period.</span>
+                </div>
             </div>
         </div>
         

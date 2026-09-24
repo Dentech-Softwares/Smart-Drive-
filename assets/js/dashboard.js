@@ -1,5 +1,7 @@
 // Dashboard JavaScript
 
+let bookingTrendChart = null;
+
 function initCharts() {
     // Booking Statistics Chart
     const bookingCtx = document.getElementById('bookingStatsChart');
@@ -106,117 +108,20 @@ function initCharts() {
         });
     }
     
-    // Booking Trend Chart
-    const trendCtx = document.getElementById('bookingTrendChart');
-    if (trendCtx) {
-        const trendLabels = trendCtx.dataset.labels ? trendCtx.dataset.labels.split(',') : [];
-        const trendValues = trendCtx.dataset.values ? trendCtx.dataset.values.split(',').map(v => v.trim() !== '' ? Number(v) : 0) : [];
-        const maxVal = Math.max(...trendValues, 1);
-        const yMax = Math.ceil(maxVal * 1.25) || 5;
-        
-        new Chart(trendCtx, {
-            type: 'line',
-            data: {
-                labels: trendLabels,
-                datasets: [{
-                    label: 'Bookings',
-                    data: trendValues,
-                    backgroundColor: function(context) {
-                        const chart = context.chart;
-                        const ctx = chart.ctx;
-                        const gradient = ctx.createLinearGradient(0, chart.chartArea.top, 0, chart.chartArea.bottom);
-                        gradient.addColorStop(0, 'rgba(13, 110, 253, 0.25)');
-                        gradient.addColorStop(0.5, 'rgba(13, 110, 253, 0.08)');
-                        gradient.addColorStop(1, 'rgba(13, 110, 253, 0.0)');
-                        return gradient;
-                    },
-                    borderColor: '#0d6efd',
-                    borderWidth: 3,
-                    pointBackgroundColor: '#ffffff',
-                    pointBorderColor: '#0d6efd',
-                    pointBorderWidth: 3,
-                    pointRadius: 7,
-                    pointHoverRadius: 10,
-                    pointHoverBorderWidth: 4,
-                    pointHoverBackgroundColor: '#ffffff',
-                    tension: 0.35,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
-                },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        titleColor: '#f1f5f9',
-                        bodyColor: '#ffffff',
-                        borderColor: 'rgba(13, 110, 253, 0.5)',
-                        borderWidth: 1,
-                        padding: 14,
-                        cornerRadius: 10,
-                        displayColors: false,
-                        titleFont: { size: 13, weight: '600' },
-                        bodyFont: { size: 15, weight: '700' },
-                        callbacks: {
-                            title: function(context) {
-                                return context[0].label;
-                            },
-                            label: function(context) {
-                                const val = context.parsed.y;
-                                return val + ' booking' + (val !== 1 ? 's' : '');
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: yMax,
-                        ticks: {
-                            stepSize: 1,
-                            color: '#64748b',
-                            font: { size: 12, weight: '500' },
-                            padding: 8
-                        },
-                        grid: {
-                            color: 'rgba(0,0,0,0.04)',
-                            drawBorder: false
-                        },
-                        border: { display: false }
-                    },
-                    x: {
-                        grid: { display: false },
-                        ticks: {
-                            color: '#64748b',
-                            font: { size: 12, weight: '500' },
-                            padding: 8
-                        },
-                        border: { display: false }
-                    }
-                },
-                animation: {
-                    duration: 1800,
-                    easing: 'easeInOutQuart'
-                }
-            }
-        });
-    }
+    // Booking Trend Chart (AJAX-driven, two datasets)
+    loadTrendChart();
 }
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
         initCharts();
         initDashboardAutoRefresh();
+        bindTrendControls();
     });
 } else {
     initCharts();
     initDashboardAutoRefresh();
+    bindTrendControls();
 }
 
 function initDashboardAutoRefresh() {
@@ -315,10 +220,222 @@ function filterTrend() {
     const start = document.getElementById('trendStartDate').value;
     const end = document.getElementById('trendEndDate').value;
     if (start && end) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('start_date', start);
-        url.searchParams.set('end_date', end);
-        window.location.href = url.toString();
+        loadTrendChart(start, end);
+    }
+}
+
+function bindTrendControls() {
+    const btn = document.getElementById('trendFilterBtn');
+    if (btn) {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            filterTrend();
+        });
+    }
+}
+
+function toggleTrendState(state) {
+    const loading = document.getElementById('trendLoading');
+    const zero = document.getElementById('trendZeroState');
+    const canvas = document.getElementById('bookingTrendChart');
+    if (loading) loading.style.display = state === 'loading' ? 'grid' : 'none';
+    if (zero) zero.style.display = state === 'empty' ? 'grid' : 'none';
+    if (canvas) canvas.style.display = state === 'chart' ? 'block' : 'none';
+}
+
+function loadTrendChart(startDate, endDate) {
+    const ctx = document.getElementById('bookingTrendChart');
+    if (!ctx) return;
+
+    toggleTrendState('loading');
+
+    const params = new URLSearchParams();
+    if (startDate) params.set('start_date', startDate);
+    if (endDate) params.set('end_date', endDate);
+
+    const url = (typeof BASE_URL !== 'undefined' ? BASE_URL : '/') + 'api/bookings-trend.php?' + params.toString();
+
+    fetch(url, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (!data || !data.success) {
+                toggleTrendState('empty');
+                destroyTrendChart();
+                return;
+            }
+            const total = data.totalBookings || [];
+            const completed = data.completedBookings || [];
+            const allZero = total.length === 0 || (total.every(v => v === 0) && completed.every(v => v === 0));
+            if (allZero) {
+                toggleTrendState('empty');
+                destroyTrendChart();
+                return;
+            }
+            toggleTrendState('chart');
+            renderBookingTrendChart(ctx, data);
+        })
+        .catch(() => {
+            toggleTrendState('empty');
+            destroyTrendChart();
+        });
+}
+
+function formatTrendCurrency(amount, symbol) {
+    const num = Number(amount) || 0;
+    return symbol + num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function renderBookingTrendChart(ctx, data) {
+    destroyTrendChart();
+
+    const currencySymbol = data.currencySymbol || 'KSh ';
+    const maxVal = Math.max(...(data.totalBookings || []), ...(data.completedBookings || []), 1);
+    const yMax = Math.ceil(maxVal * 1.25);
+
+    bookingTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels || [],
+            datasets: [
+                {
+                    label: 'Total Bookings',
+                    data: data.totalBookings || [],
+                    borderColor: '#A82229',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#A82229',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    pointHoverBorderWidth: 3,
+                    pointHoverBackgroundColor: '#ffffff',
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: function (context) {
+                        const chart = context.chart;
+                        const c = chart.ctx;
+                        const area = chart.chartArea || { top: 0, bottom: ctx.canvas.height || 300 };
+                        const grad = c.createLinearGradient(0, area.top, 0, area.bottom);
+                        grad.addColorStop(0, 'rgba(168, 34, 41, 0.35)');
+                        grad.addColorStop(1, 'rgba(168, 34, 41, 0.0)');
+                        return grad;
+                    }
+                },
+                {
+                    label: 'Completed Trips',
+                    data: data.completedBookings || [],
+                    borderColor: '#0d6efd',
+                    borderDash: [6, 5],
+                    borderWidth: 2,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#0d6efd',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                    pointHoverBackgroundColor: '#ffffff',
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: function (context) {
+                        const chart = context.chart;
+                        const c = chart.ctx;
+                        const area = chart.chartArea || { top: 0, bottom: ctx.canvas.height || 300 };
+                        const grad = c.createLinearGradient(0, area.top, 0, area.bottom);
+                        grad.addColorStop(0, 'rgba(13, 110, 253, 0.18)');
+                        grad.addColorStop(1, 'rgba(13, 110, 253, 0.0)');
+                        return grad;
+                    }
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        color: '#64748b',
+                        font: { size: 12, weight: '600' },
+                        usePointStyle: true,
+                        padding: 16
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                    titleColor: '#f1f5f9',
+                    bodyColor: '#ffffff',
+                    borderColor: 'rgba(168, 34, 41, 0.45)',
+                    borderWidth: 1,
+                    padding: 14,
+                    cornerRadius: 10,
+                    displayColors: false,
+                    titleFont: { size: 13, weight: '600' },
+                    bodyFont: { size: 14, weight: '600' },
+                    callbacks: {
+                        title: function (context) {
+                            return context[0].label;
+                        },
+                        label: function (context) {
+                            const val = context.parsed.y;
+                            if (val === null || val === undefined) return '';
+                            return context.dataset.label + ': ' + val;
+                        },
+                        afterLabel: function (context) {
+                            if (context.dataset.label === 'Total Bookings') {
+                                const rev = data.revenue && data.revenue[context.dataIndex];
+                                if (rev !== undefined && rev !== null && Number(rev) > 0) {
+                                    return 'Revenue: ' + formatTrendCurrency(rev, currencySymbol);
+                                }
+                            }
+                            return '';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: yMax,
+                    grid: {
+                        color: 'rgba(0,0,0,0.04)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        stepSize: Math.max(1, Math.ceil(maxVal / 5)),
+                        color: '#64748b',
+                        font: { size: 12, weight: '500' }
+                    },
+                    border: { display: false }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        color: '#64748b',
+                        font: { size: 12, weight: '500' }
+                    },
+                    border: { display: false }
+                }
+            },
+            animation: {
+                duration: 1400,
+                easing: 'easeInOutQuart'
+            }
+        }
+    });
+}
+
+function destroyTrendChart() {
+    if (bookingTrendChart) {
+        try { bookingTrendChart.destroy(); } catch (e) { /* ignore */ }
+        bookingTrendChart = null;
     }
 }
 

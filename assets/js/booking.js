@@ -15,7 +15,8 @@ function checkAvailability() {
     }
     
     const btn = document.getElementById('checkBtn');
-    btn.innerHTML = '<span class="spinner spinner-sm"></span> Checking...';
+    btn.innerHTML = '<span class="spinner-border-sm"></span> Checking...';
+    btn.classList.add('btn-loading');
     btn.disabled = true;
     
     fetch('/api/check-availability.php', {
@@ -32,6 +33,7 @@ function checkAvailability() {
     .then(response => response.json())
     .then(data => {
         btn.innerHTML = 'Check Availability';
+        btn.classList.remove('btn-loading');
         btn.disabled = false;
         
         if (data.available) {
@@ -54,6 +56,7 @@ function checkAvailability() {
     })
     .catch(error => {
         btn.innerHTML = 'Check Availability';
+        btn.classList.remove('btn-loading');
         btn.disabled = false;
         Swal.fire({
             icon: 'error',
@@ -103,7 +106,8 @@ function submitPayment() {
     }
     
     const btn = document.querySelector('#paymentForm button[type="submit"]');
-    btn.innerHTML = '<span class="spinner spinner-sm"></span> Processing...';
+    btn.innerHTML = '<span class="spinner-border-sm"></span> Processing...';
+    btn.classList.add('btn-loading');
     btn.disabled = true;
     
     return true;
