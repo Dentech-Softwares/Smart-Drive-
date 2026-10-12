@@ -132,42 +132,26 @@ include __DIR__ . '/../../includes/header.php';
                     <a href="<?php echo BASE_URL; ?>admin/vehicles/index.php" class="btn btn-primary">Clear Filters</a>
                 </div>
             <?php else: ?>
-                <table class="data-table">
+                <table class="data-table clickable-rows">
                     <thead>
-                        <tr><th>#</th>
+                        <tr>
                             <th>Vehicle</th>
                             <th>Category</th>
                             <th>Registration</th>
                             <th>Transmission</th>
                             <th>Price/Day</th>
                             <th>Status</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php $counter = 1; ?>
                         <?php foreach ($vehicles as $vehicle): ?>
-                            <tr>
-                            <td><?php echo $counter++; ?></td>
-                            <td><strong><?php echo htmlspecialchars($vehicle['brand'] . ' ' . $vehicle['model']); ?></strong>
-                                </td>
+                            <tr data-href="<?php echo BASE_URL; ?>admin/vehicles/edit.php?id=<?php echo $vehicle['id']; ?>">
+                                <td><strong><?php echo htmlspecialchars($vehicle['brand'] . ' ' . $vehicle['model']); ?></strong></td>
                                 <td><?php echo htmlspecialchars($vehicle['category_name']); ?></td>
                                 <td><?php echo htmlspecialchars($vehicle['registration_number']); ?></td>
                                 <td><?php echo $vehicle['transmission']; ?></td>
                                 <td><?php echo formatCurrency($vehicle['price_per_day']); ?></td>
                                 <td><?php echo getVehicleStatusLabel($vehicle['status']); ?></td>
-                                <td>
-                                    <a href="<?php echo BASE_URL; ?>admin/vehicles/edit.php?id=<?php echo $vehicle['id']; ?>" class="btn btn-sm btn-outline">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                     <form method="POST" action="<?php echo BASE_URL; ?>admin/vehicles/delete.php" onsubmit="return confirm('Are you sure you want to delete this vehicle?')">
-                                        <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
-                                        <input type="hidden" name="vehicle_id" value="<?php echo $vehicle['id']; ?>">
-                                        <button type="submit" class="btn btn-sm btn-danger">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

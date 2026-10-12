@@ -26,6 +26,7 @@ if (!$booking) {
     redirect('/driver/trips.php');
 }
 $pageTitle = 'Trip Details - Smart Drive Car Hire';
+$extraScripts = ['assets/js/booking-actions.js'];
 include __DIR__ . '/../includes/header.php';
 ?>
 <div class="dashboard">
@@ -40,14 +41,14 @@ include __DIR__ . '/../includes/header.php';
             <li><a href="<?php echo BASE_URL; ?>driver/profile.php"><i class="fas fa-user"></i> Profile</a></li>
             <li><a href="<?php echo BASE_URL; ?>logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
         </ul>
-</aside>
-            <div class="sidebar-overlay"></div>
-            
+    </aside>
+    <div class="sidebar-overlay"></div>
+    
     <main class="main-content">
         <div class="top-bar">
             <button id="sidebarToggle" class="sidebar-toggle"><i class="fas fa-bars"></i></button>
             <h1>Trip Details</h1>
-            <div>
+            <div class="booking-status-badge" data-booking-status>
                 <?php echo getBookingStatusLabel($booking['status']); ?>
             </div>
         </div>
@@ -101,15 +102,17 @@ include __DIR__ . '/../includes/header.php';
                 <h3><i class="fas fa-actions"></i> Actions</h3>
             </div>
             <div class="card-body">
-                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;" id="booking-actions">
                     <?php if ($booking['status'] === 'Confirmed'): ?>
-                        <button onclick="updateTripStatus(<?php echo $booking['id']; ?>, 'Active')" class="btn btn-primary">
+                        <button onclick="BookingActions.updateTripStatus(<?php echo $booking['id']; ?>, 'Active')" class="btn btn-primary">
                             <i class="fas fa-play"></i> Start Trip
                         </button>
                     <?php elseif ($booking['status'] === 'Active'): ?>
-                        <button onclick="updateTripStatus(<?php echo $booking['id']; ?>, 'Completed')" class="btn btn-success">
+                        <button onclick="BookingActions.updateTripStatus(<?php echo $booking['id']; ?>, 'Completed')" class="btn btn-success">
                             <i class="fas fa-stop"></i> End Trip
                         </button>
+                    <?php else: ?>
+                        <span class="text-muted">No actions available for current status: <strong><?php echo htmlspecialchars($booking['status']); ?></strong></span>
                     <?php endif; ?>
                 </div>
                 
@@ -124,83 +127,33 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-<script>const BASE_URL = '<?php echo BASE_URL; ?>';
-function updateTripStatus(bookingId, status) {
-    const confirmFn = typeof Swal !== 'undefined' ? Swal.fire : null;
-    const doUpdate = () => {
-        fetch(BASE_URL + 'api/booking-actions.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'update_status', booking_id: bookingId, status: status })
-        })
-        .then(response => {
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-                return response.json();
-            }
-            return response.text().then(text => {
-                console.error('Non-JSON response:', text);
-                throw new Error('Server error');
-            });
-        })
-        .then(data => {
-            if (data.success) {
-                if (confirmFn) {
-                    Swal.fire({ icon: 'success', title: 'Updated!', text: data.message, confirmButtonColor: '#8B0000' })
-                        .then(() => location.reload());
-                } else {
-                    alert('Success: ' + data.message);
-                    location.reload();
-                }
-            } else {
-                if (confirmFn) {
-                    Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Unknown error', confirmButtonColor: '#8B0000' });
-                } else {
-                    alert('Error: ' + (data.message || 'Unknown error'));
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Fetch error:', error);
-            if (confirmFn) {
-                Swal.fire({ icon: 'error', title: 'Network Error', text: 'Could not reach the server.', confirmButtonColor: '#8B0000' });
-            } else {
-                alert('Network Error: Could not reach the server.');
-            }
-        });
-    };
-    
-    if (confirmFn) {
-        Swal.fire({
-            title: 'Update Trip Status?',
-            text: 'This will update the booking and vehicle status.',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#8B0000',
-            confirmButtonText: 'Yes, update!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                doUpdate();
-            }
-        });
-    } else {
-        if (confirm('Update Trip Status? This will update the booking and vehicle status.')) {
-            doUpdate();
-        }
-    }
-}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    BookingActions.init({
+        baseUrl: '<?php echo BASE_URL; ?>',
+        csrfToken: '<?php echo csrf_token(); ?>',
+        userRole: '<?php echo $_SESSION['role'] ?? ''; ?>',
+        userId: <?php echo $_SESSION['user_id'] ?? 0; ?>
+    });
+});
+
 function saveNotes(bookingId) {
     const notes = document.getElementById('tripNotes').value;
     fetch(BASE_URL + 'api/booking-actions.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'save_notes', booking_id: bookingId, notes: notes })
+        body: JSON.stringify({ action: 'save_notes', booking_id: bookingId, notes: notes, csrf_token: '<?php echo csrf_token(); ?>' })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Notes saved successfully!');
+            BookingActions.showToast('success', 'Saved', 'Notes saved successfully!');
+        } else {
+            BookingActions.showToast('error', 'Error', data.message || 'Failed to save notes');
         }
+    })
+    .catch(error => {
+        BookingActions.showToast('error', 'Error', 'Network error: ' + error.message);
     });
 }
 </script>

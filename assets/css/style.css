@@ -110,6 +110,26 @@ button, input, select, textarea { font: inherit; }
 .btn-sm { padding: 8px 14px; font-size: 0.82rem; }
 .btn-lg { padding: 15px 26px; font-size: 1rem; border-radius: var(--radius-md); }
 
+/* ========== SPINNER ========== */
+.spinner-border {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    vertical-align: text-bottom;
+    border: 0.15em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border 0.75s linear infinite;
+}
+.spinner-border-sm {
+    width: 0.875rem;
+    height: 0.875rem;
+    border-width: 0.125em;
+}
+@keyframes spinner-border {
+    to { transform: rotate(360deg); }
+}
+
 /* ========== NAVBAR ========== */
 .navbar {
     position: sticky; top: 0; z-index: 1000;

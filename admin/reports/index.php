@@ -166,10 +166,12 @@ include __DIR__ . '/../../includes/header.php';
         
         <div class="chart-container">
             <h4><?php echo ucfirst($reportType); ?> Report (<?php echo formatDate($startDate); ?> - <?php echo formatDate($endDate); ?>)</h4>
-            <canvas id="reportChart"
-                data-labels="<?php echo htmlspecialchars(json_encode($labels), ENT_QUOTES); ?>"
-                data-values="<?php echo htmlspecialchars(implode(',', $data), ENT_QUOTES); ?>">
-            </canvas>
+            <div class="chart-wrapper">
+                <canvas id="reportChart"
+                    data-labels="<?php echo htmlspecialchars(json_encode($labels), ENT_QUOTES); ?>"
+                    data-values="<?php echo htmlspecialchars(implode(',', $data), ENT_QUOTES); ?>">
+                </canvas>
+            </div>
         </div>
         
         <div class="card mt-2">

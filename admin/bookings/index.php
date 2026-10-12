@@ -54,7 +54,6 @@ $pageTitle = 'Bookings - Smart Drive Car Hire';
 include __DIR__ . '/../../includes/header.php';
 ?>
 
-
 <div class="dashboard">
     <aside class="sidebar">
         <div class="sidebar-header">
@@ -115,9 +114,9 @@ include __DIR__ . '/../../includes/header.php';
                     <p>No bookings match your search criteria.</p>
                 </div>
             <?php else: ?>
-                <table class="data-table">
+                <table class="data-table clickable-rows">
                     <thead>
-                        <tr><th>#</th>
+                        <tr>
                             <th>Reference</th>
                             <th>Client</th>
                             <th>Vehicle</th>
@@ -125,29 +124,18 @@ include __DIR__ . '/../../includes/header.php';
                             <th>Pickup</th>
                             <th>Amount</th>
                             <th>Status</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php $counter = 1; ?>
                         <?php foreach ($bookings as $booking): ?>
-                            <tr>
-                            <td><?php echo $counter++; ?></td>
-                            <td><strong><?php echo htmlspecialchars($booking['booking_reference']); ?></strong></td>
+                            <tr data-href="<?php echo BASE_URL; ?>admin/bookings/details.php?id=<?php echo $booking['id']; ?>">
+                                <td><strong><?php echo htmlspecialchars($booking['booking_reference']); ?></strong></td>
                                 <td><?php echo htmlspecialchars($booking['client_name']); ?></td>
                                 <td><?php echo htmlspecialchars($booking['brand'] . ' ' . $booking['model']); ?></td>
                                 <td><?php echo htmlspecialchars($booking['driver_name'] ?? 'Unassigned'); ?></td>
                                 <td><?php echo formatDate($booking['pickup_datetime']); ?></td>
                                 <td><?php echo formatCurrency($booking['total_amount']); ?></td>
                                 <td><?php echo getBookingStatusLabel($booking['status']); ?></td>
-                                <td>
-                                    <a href="<?php echo BASE_URL; ?>admin/bookings/details.php?id=<?php echo $booking['id']; ?>" class="btn btn-sm btn-outline">View</a>
-                                    <?php if (in_array($booking['status'], ['Confirmed', 'Approved', 'Payment Submitted']) && !$booking['driver_id'] && $booking['with_driver']): ?>
-                                        <a href="<?php echo BASE_URL; ?>admin/bookings/assign.php?id=<?php echo $booking['id']; ?>" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-user-plus"></i> Assign
-                                        </a>
-                                    <?php endif; ?>
-                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

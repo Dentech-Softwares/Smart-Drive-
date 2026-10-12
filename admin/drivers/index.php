@@ -110,27 +110,23 @@ include __DIR__ . '/../../includes/header.php';
                     <a href="<?php echo BASE_URL; ?>admin/drivers/add.php" class="btn btn-primary">Add Driver</a>
                 </div>
             <?php else: ?>
-                <table class="data-table">
+                <table class="data-table clickable-rows">
                     <thead>
-                        <tr><th>#</th>
+                        <tr>
                             <th>Driver</th>
                             <th>Phone</th>
                             <th>License</th>
                             <th>Expiry</th>
                             <th>Status</th>
                             <th>Trips</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php $counter = 1; ?>
                         <?php foreach ($drivers as $driver): ?>
-                            <tr>
-                            <td><?php echo $counter++; ?></td>
-                            <td><strong><?php echo htmlspecialchars($driver['full_name']); ?></strong>
+                            <tr data-href="<?php echo BASE_URL; ?>admin/drivers/edit.php?id=<?php echo $driver['id']; ?>">
+                                <td><strong><?php echo htmlspecialchars($driver['full_name']); ?></strong>
                                     <?php if ($driver['email']): ?>
-                                    
-                                    <br><small><?php echo htmlspecialchars($driver['email']); ?></small>
+                                        <br><small><?php echo htmlspecialchars($driver['email']); ?></small>
                                     <?php endif; ?>
                                 </td>
                                 <td><?php echo htmlspecialchars($driver['phone']); ?></td>
@@ -138,20 +134,6 @@ include __DIR__ . '/../../includes/header.php';
                                 <td><?php echo formatDate($driver['license_expiry']); ?></td>
                                 <td><?php echo getDriverStatusLabel($driver['status']); ?></td>
                                 <td><?php echo $driver['trips']; ?></td>
-                                <td>
-                                    <a href="<?php echo BASE_URL; ?>admin/drivers/edit.php?id=<?php echo $driver['id']; ?>" class="btn btn-sm btn-outline">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <?php if ($driver['trips'] == 0): ?>
-                                        <form method="POST" action="<?php echo BASE_URL; ?>admin/drivers/delete.php" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this driver?');">
-                                            <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
-                                            <input type="hidden" name="driver_id" value="<?php echo $driver['id']; ?>">
-                                            <button type="submit" class="btn btn-sm btn-danger">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    <?php endif; ?>
-                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

@@ -95,17 +95,14 @@
 }
 .chart-container { 
     padding: 22px; 
-    min-height: 300px; 
     background: #fff; 
     border: 1px solid var(--border); 
     border-radius: 18px; 
     box-shadow: 0 4px 20px rgba(0,0,0,0.03);
 }
-.chart-container canvas { width: 100% !important; height: 100% !important; }
 .chart-wrapper { position: relative; height: 300px; width: 100%; }
 .chart-container h4 { margin-bottom: 16px; color: var(--text-dark); font-weight: 600; }
 .trend-chart-wrapper { position: relative; height: 340px; width: 100%; }
-.trend-chart-wrapper canvas { width: 100% !important; height: 100% !important; }
 .trend-loading,
 .trend-zero-state {
     position: absolute;
