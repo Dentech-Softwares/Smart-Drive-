@@ -64,7 +64,8 @@ include __DIR__ . '/../includes/header.php';
                         ];
                     ?>
                         <div class="notification-item notification-item-row <?php echo !$notification['is_read'] ? 'unread' : ''; ?>" 
-                             onclick="<?php echo $notification['link'] ? "window.location.href='{$notification['link']}'" : ''; ?>">
+                             data-notification-id="<?php echo $notification['id']; ?>"
+                             data-link="<?php echo $notification['link'] ? $notification['link'] : ''; ?>">
                             <div class="icon <?php echo $typeColors[$notification['type']] ?? 'bg-secondary'; ?>">
                                 <i class="fas <?php echo $typeIcons[$notification['type']] ?? 'fa-bell'; ?>"></i>
                             </div>
@@ -82,14 +83,6 @@ include __DIR__ . '/../includes/header.php';
         </div>
     </main>
 </div>
-<script>const BASE_URL = '<?php echo BASE_URL; ?>';
-function markAllRead() {
-    fetch(BASE_URL + 'api/notifications.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'mark_all_read' })
-    }).then(() => location.reload());
-}
-</script>
+<?php include __DIR__ . '/../includes/scripts.php'; ?>
 </body>
 </html>

@@ -103,7 +103,7 @@ include __DIR__ . '/../../includes/header.php';
             </form>
         </div>
         
-        <div class="data-table-container">
+<div class="data-table-container">
             <?php if (empty($payments)): ?>
                 <div class="empty-state">
                     <i class="fas fa-credit-card"></i>
@@ -111,54 +111,28 @@ include __DIR__ . '/../../includes/header.php';
                     <p>No payments match your search criteria.</p>
                 </div>
             <?php else: ?>
-                <table class="data-table">
+                <table class="data-table clickable-rows">
                     <thead>
-                        <tr><th>#</th>
-                            <th>Client</th>
+                        <tr>
                             <th>Booking</th>
+                            <th>Client</th>
                             <th>Vehicle</th>
                             <th>Amount</th>
                             <th>Method</th>
                             <th>Status</th>
                             <th>Date</th>
-                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php $counter = 1; ?>
                         <?php foreach ($payments as $payment): ?>
-                            <tr>
-                                <td><?php echo $counter++; ?></td>
+                            <tr data-href="<?php echo BASE_URL; ?>admin/bookings/details.php?id=<?php echo $payment['booking_id']; ?>">
+                                <td><strong><?php echo htmlspecialchars($payment['booking_reference']); ?></strong></td>
                                 <td><?php echo htmlspecialchars($payment['client_name']); ?></td>
-                                <td><?php echo htmlspecialchars($payment['booking_reference']); ?></td>
                                 <td><?php echo htmlspecialchars($payment['brand'] . ' ' . $payment['model']); ?></td>
                                 <td><strong><?php echo formatCurrency($payment['amount']); ?></strong></td>
                                 <td><?php echo $payment['payment_method']; ?></td>
                                 <td><?php echo getPaymentStatusLabel($payment['status']); ?></td>
                                 <td><?php echo formatDate($payment['created_at']); ?></td>
-                                <td>
-                                    <a href="<?php echo BASE_URL; ?>admin/bookings/details.php?id=<?php echo $payment['booking_id']; ?>" class="btn btn-sm btn-outline" title="View Booking">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <?php if ($payment['status'] === 'Pending'): ?>
-                                        <form method="POST" action="<?php echo BASE_URL; ?>admin/payments/verify.php" style="display: inline;">
-                                            <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
-                                            <input type="hidden" name="payment_id" value="<?php echo $payment['id']; ?>">
-                                            <input type="hidden" name="action" value="verify">
-                                            <button type="submit" class="btn btn-sm btn-success" title="Verify" onclick="return confirm('Verify this payment?')">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                        </form>
-                                        <form method="POST" action="<?php echo BASE_URL; ?>admin/payments/verify.php" style="display: inline;">
-                                            <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
-                                            <input type="hidden" name="payment_id" value="<?php echo $payment['id']; ?>">
-                                            <input type="hidden" name="action" value="reject">
-                                            <button type="submit" class="btn btn-sm btn-danger" title="Reject" onclick="return confirm('Reject this payment?')">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </form>
-                                    <?php endif; ?>
-                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

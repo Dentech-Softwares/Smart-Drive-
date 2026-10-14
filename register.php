@@ -17,35 +17,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (!verifyCsrf($_POST['csrf_token'] ?? '')) {
         $error = 'Invalid request. Please try again.';
     } else {
-    $fullName = sanitize($_POST['full_name'] ?? '');
-    $email = sanitize($_POST['email'] ?? '');
-    $phone = sanitize($_POST['phone'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $confirmPassword = $_POST['confirm_password'] ?? '';
-    
-    if (empty($fullName) || empty($email) || empty($phone) || empty($password)) {
-        $error = 'All fields are required.';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Please enter a valid email address.';
-    } elseif ($password !== $confirmPassword) {
-        $error = 'Passwords do not match.';
-    } elseif (strlen($password) < 6) {
-        $error = 'Password must be at least 6 characters.';
-    } else {
-        $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
-        $stmt->execute([$email]);
-        if ($stmt->fetch()) {
-            $error = 'Email already registered.';
+        $fullName = sanitize($_POST['full_name'] ?? '');
+        $email = sanitize($_POST['email'] ?? '');
+        $phone = sanitize($_POST['phone'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
+        
+        if (empty($fullName) || empty($phone) || empty($password)) {
+            $error = 'All fields except email are required.';
+        } elseif ($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = 'Please enter a valid email address.';
+        } elseif ($password !== $confirmPassword) {
+            $error = 'Passwords do not match.';
+        } elseif (strlen($password) < 6) {
+            $error = 'Password must be at least 6 characters.';
         } else {
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO users (full_name, email, phone, password, role, status) VALUES (?, ?, ?, ?, 'client', 'active')");
-            if ($stmt->execute([$fullName, $email, $phone, $hashedPassword])) {
-                $success = 'Registration successful! You can now login.';
+            if ($email) {
+                $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+                $stmt->execute([$email]);
+                if ($stmt->fetch()) {
+                    $error = 'Email already registered.';
+                } else {
+                    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+                    $stmt = $pdo->prepare("INSERT INTO users (full_name, email, phone, password, role, status) VALUES (?, ?, ?, ?, 'client', 'active')");
+                    $stmt->execute([$fullName, $email, $phone, $hashedPassword]);
+                    $success = 'Registration successful! You can now login.';
+                }
             } else {
-                $error = 'Registration failed. Please try again.';
+                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+                $stmt = $pdo->prepare("INSERT INTO users (full_name, email, phone, password, role, status) VALUES (?, NULL, ?, ?, 'client', 'active')");
+                $stmt->execute([$fullName, $phone, $hashedPassword]);
+                $success = 'Registration successful! You can now login.';
             }
         }
-    }
     }
 }
 $pageTitle = 'Register';
@@ -84,8 +88,8 @@ include __DIR__ . '/includes/navbar.php';
                         <input type="text" name="full_name" required placeholder="Enter your full name">
                     </div>
                     <div class="form-group">
-                        <label>Email Address</label>
-                        <input type="email" name="email" required placeholder="Enter your email">
+                        <label>Email Address <small>(optional)</small></label>
+                        <input type="email" name="email" placeholder="Enter your email (optional)">
                     </div>
                     <div class="form-group">
                         <label>Phone Number</label>

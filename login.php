@@ -16,34 +16,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (!verifyCsrf($_POST['csrf_token'] ?? '')) {
         $error = 'Invalid request. Please try again.';
     } else {
-        $email = sanitize($_POST['email'] ?? '');
+        $loginId = sanitize($_POST['login_id'] ?? '');
         $password = $_POST['password'] ?? '';
         
-        if (empty($email) || empty($password)) {
-            $error = 'Please enter both email and password.';
+        if (empty($loginId) || empty($password)) {
+            $error = 'Please enter your credentials.';
         } else {
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? AND status = 'active'");
-        $stmt->execute([$email]);
-        $user = $stmt->fetch();
-        
-        if ($user && password_verify($password, $user['password'])) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_name'] = $user['full_name'];
-            $_SESSION['role'] = $user['role'];
-            $_SESSION['email'] = $user['email'];
-            
-            logActivity($user['id'], 'Login', 'User logged in successfully');
-            
-            if ($user['role'] === 'admin' || $user['role'] === 'super_admin') {
-                redirect('/admin/dashboard.php');
-            } elseif ($user['role'] === 'driver') {
-                redirect('/driver/dashboard.php');
-            } else {
-                redirect('/client/dashboard.php');
+            try {
+                $stmt = $pdo->prepare("SELECT * FROM users WHERE (email = ? OR phone = ?) AND status = 'active'");
+                $stmt->execute([$loginId, $loginId]);
+                $user = $stmt->fetch();
+            } catch (PDOException $e) {
+                $user = null;
+                $error = 'An error occurred. Please try again.';
             }
-        } else {
-            $error = 'Invalid email or password.';
-        }
+            
+            if ($user && password_verify($password, $user['password'])) {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_name'] = $user['full_name'];
+                $_SESSION['role'] = $user['role'];
+                $_SESSION['email'] = $user['email'];
+                
+                logActivity($user['id'], 'Login', 'User logged in successfully');
+                
+                if ($user['role'] === 'admin' || $user['role'] === 'super_admin') {
+                    redirect('/admin/dashboard.php');
+                } elseif ($user['role'] === 'driver') {
+                    redirect('/driver/dashboard.php');
+                } else {
+                    redirect('/client/dashboard.php');
+                }
+            } else {
+                $error = 'Invalid credentials.';
+            }
         }
     }
 }
@@ -75,8 +80,8 @@ include __DIR__ . '/includes/navbar.php';
             <form method="POST" action="">
                 <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
                 <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" name="email" required placeholder="Enter your email">
+                    <label>Phone Number or Email Address</label>
+                    <input type="text" name="login_id" required placeholder="Enter your phone or email">
                 </div>
                 <div class="form-group">
                     <label>Password</label>

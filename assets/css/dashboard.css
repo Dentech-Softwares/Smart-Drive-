@@ -129,6 +129,12 @@
 .activity-list li { padding: 15px 22px; border-bottom: 1px solid var(--border); }
 .activity-icon { border-radius: 13px; }
 
+/* Clickable table rows */
+.data-table.clickable-rows tbody tr,
+.data-table tbody tr.clickable-row { cursor: pointer; transition: background-color 0.15s ease; }
+.data-table.clickable-rows tbody tr:hover,
+.data-table tbody tr.clickable-row:hover { background-color: #ebf4ff; }
+
 /* Quick actions */
 .quick-actions {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));

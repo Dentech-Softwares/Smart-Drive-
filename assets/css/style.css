@@ -253,6 +253,14 @@ button, input, select, textarea { font: inherit; }
 
 /* ========== VEHICLE CARDS ========== */
 .vehicles-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 25px; }
+.card-link-wrapper {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+.card-link-wrapper .vehicle-card { cursor: pointer; }
+.card-link-wrapper .btn { pointer-events: auto; }
 .vehicle-card {
     background: #fff; border: 1px solid var(--border); border-radius: 22px;
     overflow: hidden; box-shadow: var(--shadow); transition: var(--transition);

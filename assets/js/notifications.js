@@ -1,14 +1,29 @@
 // Notifications JavaScript
 
-function toggleNotifications() {
-    const dropdown = document.querySelector('.notification-dropdown .dropdown-menu');
-    if (dropdown) {
-        dropdown.classList.toggle('active');
-    }
+var BASE_URL = window.BASE_URL || '/';
+
+function getApiUrl() {
+    return BASE_URL + 'api/notifications.php';
 }
 
-function markAsRead(notificationId) {
-    fetch('/api/notifications.php', {
+function updateNotificationBadge(count) {
+    var badges = document.querySelectorAll('.notification-badge');
+    badges.forEach(function(badge) {
+        badge.textContent = count;
+        badge.style.display = count > 0 ? 'inline-block' : 'none';
+    });
+}
+
+function getNotificationBadgeCount() {
+    var badge = document.querySelector('.notification-badge');
+    if (badge && badge.textContent) {
+        return parseInt(badge.textContent) || 0;
+    }
+    return 0;
+}
+
+function markAsRead(notificationId, callback) {
+    fetch(getApiUrl(), {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -18,16 +33,26 @@ function markAsRead(notificationId) {
             notification_id: notificationId
         })
     })
-    .then(response => response.json())
-    .then(data => {
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
         if (data.success) {
-            location.reload();
+            var row = document.querySelector('.notification-item[data-notification-id="' + notificationId + '"]');
+            if (row) {
+                row.classList.remove('unread');
+
+                var count = getNotificationBadgeCount();
+                count = count > 0 ? count - 1 : 0;
+                updateNotificationBadge(count);
+            }
+        }
+        if (typeof callback === 'function') {
+            callback(data);
         }
     });
 }
 
-function markAllAsRead() {
-    fetch('/api/notifications.php', {
+function markAllRead() {
+    fetch(getApiUrl(), {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -36,36 +61,65 @@ function markAllAsRead() {
             action: 'mark_all_read'
         })
     })
-    .then(response => response.json())
-    .then(data => {
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
         if (data.success) {
-            location.reload();
+            var rows = document.querySelectorAll('.notification-item.unread');
+            rows.forEach(function(row) {
+                row.classList.remove('unread');
+            });
+
+            updateNotificationBadge(0);
         }
     });
 }
 
+// Single notification click: mark as read then navigate
+document.addEventListener('click', function(e) {
+    var item = e.target.closest('.notification-item');
+    var btn = e.target.closest('[data-action="mark-read"]');
+
+    if (btn) {
+        var id = btn.getAttribute('data-notification-id');
+        e.stopPropagation();
+        markAsRead(id);
+        return;
+    }
+
+    if (item) {
+        var nid = item.getAttribute('data-notification-id');
+        var link = item.getAttribute('data-link');
+
+        if (nid && item.classList.contains('unread')) {
+            markAsRead(nid, function() {
+                if (link) {
+                    window.location.href = link;
+                }
+            });
+        } else if (link) {
+            window.location.href = link;
+        }
+    }
+});
+
 // Close dropdown when clicking outside
 document.addEventListener('click', function(e) {
-    const dropdown = document.querySelector('.notification-dropdown');
+    var dropdown = document.querySelector('.notification-dropdown');
     if (dropdown && !dropdown.contains(e.target)) {
-        const menu = dropdown.querySelector('.dropdown-menu');
+        var menu = dropdown.querySelector('.dropdown-menu');
         if (menu) {
             menu.classList.remove('active');
         }
     }
 });
 
-// Auto-refresh notifications every 30 seconds
+// Auto-refresh notification count every 30 seconds
 setInterval(function() {
-    const unreadBadge = document.querySelector('.notification-badge');
-    if (unreadBadge && unreadBadge.textContent !== '0') {
-        fetch('/api/notifications.php?action=count')
-            .then(response => response.json())
-            .then(data => {
-                if (data.count !== undefined) {
-                    unreadBadge.textContent = data.count;
-                    unreadBadge.style.display = data.count > 0 ? 'flex' : 'none';
-                }
-            });
-    }
+    fetch(getApiUrl() + '?action=count')
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.count !== undefined) {
+                updateNotificationBadge(data.count);
+            }
+        });
 }, 30000);

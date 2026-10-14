@@ -51,11 +51,17 @@ function initCharts() {
                 datasets: [{
                     label: 'Count',
                     data: values,
-                    backgroundColor: 'rgba(139, 0, 0, 0.8)',
-                    borderColor: 'rgba(139, 0, 0, 1)',
+                    backgroundColor: 'rgba(22, 163, 74, 0.8)',
+                    borderColor: 'rgba(16, 185, 129, 1)',
                     borderWidth: 1,
                     tension: chartType === 'line' ? 0.4 : 0,
-                    fill: chartType === 'line'
+                    fill: chartType === 'line',
+                    barThickness: 35,
+                    maxBarThickness: 45,
+                    barPercentage: 0.5,
+                    categoryPercentage: 0.6,
+                    borderRadius: chartType === 'bar' ? 8 : 0,
+                    borderSkipped: 'bottom'
                 }]
             },
             options: {
@@ -66,7 +72,23 @@ function initCharts() {
                 },
                 scales: {
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            precision: 0,
+                            callback: function(value) {
+                                return Number.isInteger(value) ? value : '';
+                            }
+                        },
+                        grid: {
+                            color: '#E5E7EB',
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
                     }
                 }
             }
@@ -468,6 +490,35 @@ function destroyTrendChart() {
     if (overlay) {
         overlay.addEventListener('click', closeSidebar);
     }
+})();
+
+/* Clickable table rows */
+(function() {
+    const clickableRows = document.querySelectorAll('.clickable-row[data-booking-id]');
+    clickableRows.forEach(function(row) {
+        row.addEventListener('click', function() {
+            const bookingId = row.getAttribute('data-booking-id');
+            if (bookingId) {
+                window.location.href = BASE_URL + 'admin/bookings/details.php?id=' + bookingId;
+            }
+        });
+    });
+})();
+/* End Clickable table rows */
+
+// Legacy clickable-rows handler
+(function() {
+    const clickableTables = document.querySelectorAll('.data-table.clickable-rows');
+    clickableTables.forEach(function(table) {
+        const rows = table.querySelectorAll('tbody tr[data-href]');
+        rows.forEach(function(row) {
+            row.addEventListener('click', function() {
+                const href = row.getAttribute('data-href');
+                if (href) window.location.href = href;
+            });
+        });
+    });
+})();
 })();
 
 function updateTripStatus(bookingId, status) {

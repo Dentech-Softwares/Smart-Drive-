@@ -95,34 +95,34 @@ $vehicles = $pdo->query("SELECT v.*, c.name as category_name, CONCAT(v.brand, ' 
                 <?php foreach ($vehicles as $vehicle): 
                     $image = getVehiclePrimaryImage($vehicle['id']);
                 ?>
-                    <div class="vehicle-card hover-lift">
-                        <div class="vehicle-card-image">
-                            <img src="<?php echo $image ?: BASE_URL . 'assets/images/vehicles/default.jpg'; ?>" 
-                                 alt="<?php echo htmlspecialchars($vehicle['name']); ?>"
-                                 onerror="this.src='<?php echo BASE_URL; ?>assets/images/vehicles/default.jpg'">
-                             <span class="vehicle-badge"><?php echo htmlspecialchars($vehicle['category_name']); ?></span>
-                             <span class="status-badge <?php echo strtolower(str_replace(' ', '-', $vehicle['status'])); ?>">
-                                 <?php echo htmlspecialchars($vehicle['status']); ?>
-                             </span>
-                        </div>
-                        <div class="vehicle-card-body">
-                            <h3><?php echo htmlspecialchars($vehicle['brand'] . ' ' . $vehicle['model']); ?></h3>
-                            <div class="vehicle-features">
-                                <span class="vehicle-feature"><i class="fas fa-cog"></i> <?php echo $vehicle['transmission']; ?></span>
-                                <span class="vehicle-feature"><i class="fas fa-gas-pump"></i> <?php echo $vehicle['fuel_type']; ?></span>
-                                <span class="vehicle-feature"><i class="fas fa-users"></i> <?php echo $vehicle['seating_capacity']; ?> Seats</span>
+                    <a href="<?php echo BASE_URL; ?>vehicle-details.php?id=<?php echo $vehicle['id']; ?>" class="card-link-wrapper">
+                        <div class="vehicle-card hover-lift">
+                            <div class="vehicle-card-image">
+                                <img src="<?php echo $image ?: BASE_URL . 'assets/images/vehicles/default.jpg'; ?>" 
+                                     alt="<?php echo htmlspecialchars($vehicle['name']); ?>"
+                                     onerror="this.src='<?php echo BASE_URL; ?>assets/images/vehicles/default.jpg'">
+                                 <span class="vehicle-badge"><?php echo htmlspecialchars($vehicle['category_name']); ?></span>
+                                 <span class="status-badge <?php echo strtolower(str_replace(' ', '-', $vehicle['status'])); ?>">
+                                     <?php echo htmlspecialchars($vehicle['status']); ?>
+                                 </span>
                             </div>
-                            <div class="vehicle-card-footer">
-                                <div class="vehicle-price">
-                                    KSh <?php echo number_format($vehicle['price_per_day'], 2); ?>
-                                    <span>/day</span>
+                            <div class="vehicle-card-body">
+                                <h3><?php echo htmlspecialchars($vehicle['brand'] . ' ' . $vehicle['model']); ?></h3>
+                                <div class="vehicle-features">
+                                    <span class="vehicle-feature"><i class="fas fa-cog"></i> <?php echo $vehicle['transmission']; ?></span>
+                                    <span class="vehicle-feature"><i class="fas fa-gas-pump"></i> <?php echo $vehicle['fuel_type']; ?></span>
+                                    <span class="vehicle-feature"><i class="fas fa-users"></i> <?php echo $vehicle['seating_capacity']; ?> Seats</span>
                                 </div>
-                                <a href="<?php echo BASE_URL; ?>vehicle-details.php?id=<?php echo $vehicle['id']; ?>" class="btn btn-outline btn-sm">
-                                    View Details
-                                </a>
+                                <div class="vehicle-card-footer">
+                                    <div class="vehicle-price">
+                                        KSh <?php echo number_format($vehicle['price_per_day'], 2); ?>
+                                        <span>/day</span>
+                                    </div>
+                                    <button type="button" class="btn btn-outline btn-sm">View Details</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 <?php endforeach; ?>
             </div>
             <div class="text-center mt-3">

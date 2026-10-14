@@ -286,6 +286,7 @@ include __DIR__ . '/../../includes/header.php';
                                 <th>Reference</th>
                                 <th>Status</th>
                                 <th>Date</th>
+                                <th class="text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -296,6 +297,28 @@ include __DIR__ . '/../../includes/header.php';
                                     <td><?php echo htmlspecialchars($payment['transaction_reference'] ?? '-'); ?></td>
                                     <td><?php echo getPaymentStatusLabel($payment['status']); ?></td>
                                     <td><?php echo formatDate($payment['created_at']); ?></td>
+                                    <td class="text-center">
+                                        <?php if ($payment['status'] === 'Pending'): ?>
+                                            <form method="POST" action="<?php echo BASE_URL; ?>admin/payments/verify.php" style="display: inline;" onsubmit="return confirm('Verify this payment?')">
+                                                <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+                                                <input type="hidden" name="payment_id" value="<?php echo $payment['id']; ?>">
+                                                <input type="hidden" name="action" value="verify">
+                                                <button type="submit" class="btn btn-sm btn-success" title="Verify">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="<?php echo BASE_URL; ?>admin/payments/verify.php" style="display: inline;" onsubmit="return confirm('Reject this payment?')">
+                                                <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+                                                <input type="hidden" name="payment_id" value="<?php echo $payment['id']; ?>">
+                                                <input type="hidden" name="action" value="reject">
+                                                <button type="submit" class="btn btn-sm btn-danger" title="Reject">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </form>
+                                        <?php else: ?>
+                                            <span class="text-muted">-</span>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>

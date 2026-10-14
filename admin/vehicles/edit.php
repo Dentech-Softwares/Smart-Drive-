@@ -16,6 +16,25 @@ $vehicle = $stmt->fetch();
 if (!$vehicle) {
     redirect('/admin/vehicles/index.php');
 }
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deactivate_vehicle'])) {
+    $pdo->prepare("UPDATE vehicles SET status = 'Inactive' WHERE id = ?")->execute([$vehicleId]);
+    logActivity($_SESSION['user_id'], 'Vehicle Deactivated', "Deactivated vehicle ID: $vehicleId");
+    $message = 'Vehicle deactivated successfully. Clients can no longer book it.';
+    $stmt = $pdo->prepare("SELECT * FROM vehicles WHERE id = ?");
+    $stmt->execute([$vehicleId]);
+    $vehicle = $stmt->fetch();
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['activate_vehicle'])) {
+    $pdo->prepare("UPDATE vehicles SET status = 'Available' WHERE id = ?")->execute([$vehicleId]);
+    logActivity($_SESSION['user_id'], 'Vehicle Activated', "Activated vehicle ID: $vehicleId");
+    $message = 'Vehicle activated successfully. It is now available for client bookings.';
+    $stmt = $pdo->prepare("SELECT * FROM vehicles WHERE id = ?");
+    $stmt->execute([$vehicleId]);
+    $vehicle = $stmt->fetch();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_vehicle'])) {
     $categoryId = (int)($_POST['category_id'] ?? 0);
     $brand = sanitize($_POST['brand'] ?? '');
@@ -76,6 +95,15 @@ $brands = ['Toyota', 'Nissan', 'Honda', 'Mazda', 'Mitsubishi', 'Subaru', 'Suzuki
 $images = $pdo->prepare("SELECT * FROM vehicle_images WHERE vehicle_id = ? ORDER BY id ASC");
 $images->execute([$vehicleId]);
 $vehicleImages = $images->fetchAll();
+
+$vehicleBookingsList = $pdo->prepare("SELECT b.id, b.booking_reference, b.pickup_datetime, b.return_datetime,     b.total_amount, b.status,
+    u.full_name as client_name 
+    FROM bookings b 
+    JOIN users u ON b.client_id = u.id 
+    WHERE b.vehicle_id = ? ORDER BY b.pickup_datetime DESC");
+$vehicleBookingsList->execute([$vehicleId]);
+$vehicleBookingHistory = $vehicleBookingsList->fetchAll();
+
 $pageTitle = 'Edit Vehicle - Smart Drive Car Hire';
 include __DIR__ . '/../../includes/header.php';
 ?>
@@ -195,13 +223,27 @@ include __DIR__ . '/../../includes/header.php';
                         <label>Description</label>
                         <textarea name="description" rows="4"><?php echo htmlspecialchars($vehicle['description']); ?></textarea>
                     </div>
+                    <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
                     <div class="form-group">
                         <label>Add More Images</label>
                         <input type="file" name="images[]" multiple accept="image/*">
                     </div>
-                    <button type="submit" name="edit_vehicle" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Update Vehicle
-                    </button>
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <button type="submit" name="edit_vehicle" class="btn btn-sm btn-danger">
+                            <i class="fas fa-save"></i> Update Vehicle
+                        </button>
+                        <?php if ($vehicle['status'] === 'Inactive'): ?>
+                            <button type="submit" name="activate_vehicle" class="btn btn-sm btn-danger" 
+                                    onclick="return confirm('Activate this vehicle? It will be available for client bookings.')">
+                                <i class="fas fa-lock-open"></i> Activate Vehicle
+                            </button>
+                        <?php else: ?>
+                            <button type="submit" name="deactivate_vehicle" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Deactivate this vehicle? Clients will no longer be able to book it.')">
+                                <i class="fas fa-ban"></i> Deactivate Vehicle
+                            </button>
+                        <?php endif; ?>
+                    </div>
                 </form>
             </div>
         </div>
@@ -231,6 +273,46 @@ include __DIR__ . '/../../includes/header.php';
                 </div>
             </div>
         <?php endif; ?>
+        
+        <div class="card mt-2">
+            <div class="card-header">
+                <h3><i class="fas fa-history"></i> Vehicle Booking History</h3>
+            </div>
+            <div class="card-body">
+                <?php if (empty($vehicleBookingHistory)): ?>
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-times"></i>
+                        <h4>No Booking History Found</h4>
+                        <p>No bookings have been made for this vehicle.</p>
+                    </div>
+                <?php else: ?>
+                    <table class="data-table clickable-rows">
+                        <thead>
+                            <tr>
+                                <th>Reference</th>
+                                <th>Client</th>
+                                <th>Pickup</th>
+                                <th>Return</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($vehicleBookingHistory as $booking): ?>
+                                <tr class="clickable-row" style="cursor: pointer;" data-booking-id="<?php echo $booking['id']; ?>">
+                                    <td><strong><?php echo htmlspecialchars($booking['booking_reference']); ?></strong></td>
+                                    <td><?php echo htmlspecialchars($booking['client_name']); ?></td>
+                                    <td><?php echo formatDate($booking['pickup_datetime']); ?></td>
+                                    <td><?php echo formatDate($booking['return_datetime']); ?></td>
+                                    <td><?php echo formatCurrency($booking['total_amount']); ?></td>
+                                    <td><?php echo getBookingStatusLabel($booking['status']); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php endif; ?>
+            </div>
+        </div>
     </main>
 </div>
 </body>

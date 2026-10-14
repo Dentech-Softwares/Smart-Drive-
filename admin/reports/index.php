@@ -168,8 +168,8 @@ include __DIR__ . '/../../includes/header.php';
             <h4><?php echo ucfirst($reportType); ?> Report (<?php echo formatDate($startDate); ?> - <?php echo formatDate($endDate); ?>)</h4>
             <div class="chart-wrapper">
                 <canvas id="reportChart"
-                    data-labels="<?php echo htmlspecialchars(json_encode($labels), ENT_QUOTES); ?>"
-                    data-values="<?php echo htmlspecialchars(implode(',', $data), ENT_QUOTES); ?>">
+                    data-labels='<?php echo json_encode($labels, JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS); ?>'
+                    data-values="<?php echo implode(',', $data); ?>">
                 </canvas>
             </div>
         </div>

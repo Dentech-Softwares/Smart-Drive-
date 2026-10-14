@@ -10,7 +10,7 @@ $driverId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if (!$driverId) {
     redirect('/admin/drivers/index.php');
 }
-$stmt = $pdo->prepare("SELECT * FROM drivers WHERE id = ?");
+$stmt = $pdo->prepare("SELECT d.*, COUNT(b.id) as trips FROM drivers d LEFT JOIN bookings b ON b.driver_id = d.id WHERE d.id = ? GROUP BY d.id");
 $stmt->execute([$driverId]);
 $driver = $stmt->fetch();
 if (!$driver) {
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_driver'])) {
             logActivity($_SESSION['user_id'], 'Driver Updated', "Updated driver: $fullName");
             $message = 'Driver updated successfully!';
             
-            $stmt = $pdo->prepare("SELECT * FROM drivers WHERE id = ?");
+            $stmt = $pdo->prepare("SELECT d.*, COUNT(b.id) as trips FROM drivers d LEFT JOIN bookings b ON b.driver_id = d.id WHERE d.id = ? GROUP BY d.id");
             $stmt->execute([$driverId]);
             $driver = $stmt->fetch();
         } else {
@@ -153,6 +153,24 @@ include __DIR__ . '/../../includes/header.php';
                 </form>
             </div>
         </div>
+        
+        <?php if ($driver['trips'] == 0): ?>
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-trash-2"></i> Danger Zone</h3>
+                </div>
+                <div class="card-body">
+                    <p style="color: var(--danger);">Deleting this driver is a permanent action and cannot be undone.</p>
+                    <form method="POST" action="<?php echo BASE_URL; ?>admin/drivers/delete.php" onsubmit="return confirm('Are you sure you want to delete this driver? This action cannot be undone.')">
+                        <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+                        <input type="hidden" name="driver_id" value="<?php echo $driver['id']; ?>">
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            <i class="fas fa-trash"></i> Delete Driver
+                        </button>
+                    </form>
+                </div>
+            </div>
+        <?php endif; ?>
     </main>
 </div>
 </body>
